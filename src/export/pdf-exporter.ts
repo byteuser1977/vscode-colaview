@@ -1,38 +1,79 @@
-// PDF 导出器 — 使用 Puppeteer headless Chrome 渲染
+// PDF 导出器 — 使用 puppeteer-core + 系统 Chrome/Edge 渲染
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { renderMarkdown } from '../renderer/markdown-parser';
 import { ThemeManager } from '../themes/theme-manager';
-import { ensureAllPluginsRendered, collectExportStyles } from '../renderer/plugin-system';
 import { collectCSSVariables, buildRootCSSBlock } from './css-collector';
 
 /**
- * 导出当前 Markdown 文件为 A4 PDF。
- * 使用 Puppeteer headless Chrome 渲染：
- * 1. 等待异步渲染完成
- * 2. 构建完整 HTML（含主题 CSS、@page A4、printBackground）
- * 3. 保存为临时 .html 文件
- * 4. Puppeteer 打开并 printToPDF()
- * 5. 保存 PDF 到用户指定路径
- *
- * @param document 当前 Markdown 文档
+ * 加载 ColaMD 的 colamd.css（包含 ProseMirror、base、主题变量等）
  */
-export async function exportPDF(document: vscode.TextDocument): Promise<void> {
-    await ensureAllPluginsRendered();
+function loadColamdCSS(context: vscode.ExtensionContext): string {
+    const outPath = path.join(context.extensionPath, 'out', 'preview', 'webview', 'colamd.css');
+    const srcPath = path.join(context.extensionPath, 'src', 'preview', 'webview', 'colamd.css');
+    const cssPath = fs.existsSync(outPath) ? outPath : srcPath;
+    if (fs.existsSync(cssPath)) {
+        return fs.readFileSync(cssPath, 'utf-8');
+    }
+    return '';
+}
 
-    const renderedHTML = await renderMarkdown(document.getText());
+/**
+ * 查找系统中已安装的 Chrome 或 Edge 可执行文件路径
+ */
+function findChromePath(): string | null {
+    const platform = process.platform;
+    const candidates: string[] = [];
 
+    if (platform === 'darwin') {
+        candidates.push(
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+            `${os.homedir()}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`,
+        );
+    } else if (platform === 'win32') {
+        const progFiles = process.env['PROGRAMFILES'] || 'C:\\Program Files';
+        const progFilesX86 = process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)';
+        const localAppData = process.env['LOCALAPPDATA'] || '';
+        candidates.push(
+            `${progFiles}\\Google\\Chrome\\Application\\chrome.exe`,
+            `${progFilesX86}\\Google\\Chrome\\Application\\chrome.exe`,
+            `${localAppData}\\Google\\Chrome\\Application\\chrome.exe`,
+            `${progFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
+            `${progFilesX86}\\Microsoft\\Edge\\Application\\msedge.exe`,
+        );
+    } else {
+        candidates.push(
+            '/usr/bin/google-chrome',
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+            '/snap/bin/chromium',
+        );
+    }
+
+    for (const p of candidates) {
+        if (fs.existsSync(p)) return p;
+    }
+    return null;
+}
+
+/**
+ * 导出渲染后的 HTML 为 A4 PDF。
+ * renderedHTML 由 WebView 的 Milkdown 编辑器生成（通过 getLiveHTML）。
+ */
+export async function exportPDF(context: vscode.ExtensionContext, document: vscode.TextDocument, renderedHTML: string): Promise<void> {
     const theme = ThemeManager.getCurrentTheme();
     const foundationCSS = ThemeManager.loadFoundationCSS();
     const themeCSS = ThemeManager.loadThemeCSS(theme);
     const combinedCSS = foundationCSS + themeCSS;
     const cssVars = collectCSSVariables(combinedCSS);
     const rootBlock = buildRootCSSBlock(cssVars);
-    const pluginStyles = collectExportStyles();
+    const colamdCSS = loadColamdCSS(context);
 
-    const fullHTML = buildPrintHTML(renderedHTML, rootBlock, themeCSS, pluginStyles);
+    const fullHTML = buildPrintHTML(renderedHTML, rootBlock, themeCSS, colamdCSS);
 
     const tmpDir = os.tmpdir();
     const tmpHtmlPath = path.join(tmpDir, `colaview-pdf-${Date.now()}.html`);
@@ -56,8 +97,18 @@ export async function exportPDF(document: vscode.TextDocument): Promise<void> {
         },
         async () => {
             try {
-                const puppeteer = require('puppeteer');
-                const browser = await puppeteer.launch({ headless: true });
+                const chromePath = findChromePath();
+                if (!chromePath) {
+                    throw new Error(
+                        'Chrome or Edge not found. Please install Google Chrome or Microsoft Edge.'
+                    );
+                }
+
+                const puppeteer = require('puppeteer-core');
+                const browser = await puppeteer.launch({
+                    headless: true,
+                    executablePath: chromePath,
+                });
                 const page = await browser.newPage();
                 await page.goto(`file://${tmpHtmlPath}`, { waitUntil: 'networkidle0' });
 
@@ -90,16 +141,17 @@ function buildPrintHTML(
     html: string,
     rootBlock: string,
     themeCSS: string,
-    pluginStyles: string
+    colamdCSS: string
 ): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.46/dist/katex.min.css">
 <style>
+${colamdCSS}
+
 ${rootBlock}
 ${themeCSS}
-${pluginStyles}
 
 html, body {
     height: auto !important;
@@ -107,48 +159,55 @@ html, body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
 }
+#editor {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+#editor .ProseMirror {
+    min-height: auto !important;
+}
 body {
     max-width: none;
     margin: 0;
     padding: 20px;
     font-size: 16px;
-    font-family: var(--font-family-base, -apple-system, sans-serif);
-    line-height: var(--line-height-base, 1.75);
-    background: var(--color-bg);
-    color: var(--color-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.75;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #24292f);
 }
 
-h1 { font-size: 2em; font-weight: 700; border-bottom: 1px solid var(--color-border); padding-bottom: .3em; margin: 1.5em 0 .5em; }
-h2 { font-size: 1.5em; font-weight: 600; border-bottom: 1px solid var(--color-border); padding-bottom: .25em; margin: 1.5em 0 .5em; }
+h1 { font-size: 2em; font-weight: 700; border-bottom: 1px solid var(--color-border, #d0d7de); padding-bottom: .3em; margin: 1.5em 0 .5em; }
+h2 { font-size: 1.5em; font-weight: 600; border-bottom: 1px solid var(--color-border, #d0d7de); padding-bottom: .25em; margin: 1.5em 0 .5em; }
 h3 { font-size: 1.25em; font-weight: 600; margin: 1.5em 0 .5em; }
 code {
-    background: var(--code-bg);
-    color: var(--code-color, var(--color-text));
+    background: var(--code-bg, rgba(175,184,193,0.2));
     padding: 2px 6px;
-    border-radius: var(--radius-sm, 3px);
+    border-radius: 3px;
     font-size: .875em;
-    font-family: var(--font-family-code, monospace);
+    font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
 }
 pre {
-    background: var(--code-block-bg);
-    color: var(--code-block-text, var(--color-text));
+    background: var(--code-block-bg, #f6f8fa);
+    color: var(--code-block-text, var(--color-text, #24292f));
     padding: 16px;
-    border-radius: var(--radius-md, 6px);
+    border-radius: 6px;
     overflow-x: auto;
     margin: 1em 0;
     page-break-inside: avoid;
 }
 pre code { background: none; padding: 0; color: inherit; }
 blockquote {
-    border-left: 4px solid var(--blockquote-border);
+    border-left: 4px solid var(--blockquote-border, #ddd);
     padding: 8px 16px;
     margin: 1em 0;
-    color: var(--color-text-muted);
+    color: var(--color-text-muted, #656d76);
 }
 table { border-collapse: collapse; width: 100%; margin: 1em 0; page-break-inside: avoid; }
-th, td { border: 1px solid var(--table-border, var(--color-border)); padding: 8px 12px; }
-th { background: var(--table-header-bg); font-weight: 600; }
-a { color: var(--color-link); text-decoration: none; }
+th, td { border: 1px solid var(--color-border, #d0d7de); padding: 8px 12px; }
+th { background: var(--table-header-bg, #f6f8fa); font-weight: 600; }
+a { color: var(--color-link, #0969da); text-decoration: none; }
 img { max-width: 100%; }
 
 .mermaid-error, .mermaid-loading { display: none !important; }
@@ -158,7 +217,7 @@ img { max-width: 100%; }
 </style>
 </head>
 <body>
-<div id="write">${html}</div>
+${html}
 </body>
 </html>`;
 }

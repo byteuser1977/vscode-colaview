@@ -1,0 +1,7 @@
+{
+    "colaview.autoPreview": false,
+    "colaview.customThemesPath": ".themes/",
+    "colaview.theme": "newsprint",
+    "colaview.pdfMethod": "webviewPrint",
+    "colaview.plugins.math": false
+}

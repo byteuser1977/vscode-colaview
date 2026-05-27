@@ -4,10 +4,12 @@
   "version": "0.1.0",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/bytechain/vscode-colaview.git"
   },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -126,34 +128,27 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./ && mkdir -p out/preview/webview && cp src/preview/webview/*.html src/preview/webview/*.js out/preview/webview/ 2>/dev/null; true",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile",
+    "vscode:prepublish": "npm run esbuild-base -- --production",
+    "esbuild-base": "node esbuild.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "pretest": "npm run build",
     "test": "node ./out/test/runTest.js",
     "package": "vsce package"
   },
   "dependencies": {
-    "highlight.js": "^11.10.0",
+    "@bytechain.cn/colamd": "file:../ColaMD-extend",
     "katex": "^0.16.46",
-    "markdown-it": "^14.1.0",
-    "markdown-it-footnote": "^4.0.0",
-    "markdown-it-katex": "^2.0.3",
-    "markdown-it-mark": "^4.0.0",
-    "markdown-it-mermaid": "^0.2.5",
-    "markdown-it-sub": "^2.0.0",
-    "markdown-it-sup": "^2.0.0",
-    "markdown-it-task-lists": "^2.1.1",
     "mermaid": "^11.15.0",
-    "puppeteer": "^23.0.0"
+    "puppeteer-core": "^25.1.0"
   },
   "devDependencies": {
     "@types/katex": "^0.16.8",
-    "@types/markdown-it": "^14.1.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.4.0",
     "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.28.0",
     "eslint": "^9.0.0",
     "typescript": "^5.7.0"
   }

@@ -1,0 +1,1099 @@
+/*
+ * ColaMD 主题：Academic Paper (学术论文打印)
+ * 版本：v3.0（遵循 theme-paradigm.md 范式）
+ *
+ * 风格：纯白底 + 纯黑正文 + 灰度 Mermaid 图表
+ * 规范：GB/T 7713 中文学术论文排版（宋体正文 + 黑体标题 + 三线表）
+ * 单位：强制使用 px（禁止 pt，会导致 PDF 导出缩小 25%）
+ *
+ * 导入：Theme > Import Theme
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 1 — 设计令牌 (Design Tokens)
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --side-bar-bg-color: #f5f5f5;
+  --control-text-color: #333;
+  --active-file-bg-color: #e8e8e8;
+  --active-file-text-color: #000;
+  --active-file-border-color: #000;
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --select-text-bg-color: rgba(0, 0, 0, 0.12);
+  --select-text-font-color: #111111;
+  --rawblock-edit-panel-bd: #cccccc;
+}
+
+body.theme-custom {
+
+  /* ═══════════════════════════════════════════════════════════
+     1.1 种子色板 — 10 级灰度（GB/T 7713 学术论文规范）
+     ═══════════════════════════════════════════════════════════ */
+
+  --seed-surface:       #ffffff;   /* L0 页面背景（纯白）      */
+  --seed-panel:         #f5f5f5;   /* L1 代码/区块背景（浅灰）  */
+  --seed-panel-alt:     #fafafa;   /* L2 次要表面（极浅灰）     */
+
+  --seed-ink:           #111111;   /* T0 正文/标题（近黑）      */
+  --seed-ink-muted:     #333333;   /* T1 次要文字              */
+  --seed-ink-dim:       #666666;   /* T2 弱化/禁用文字          */
+
+  --seed-border:        #111111;   /* 强调边框                 */
+  --seed-border-light:  #cccccc;   /* 浅边框/分割线            */
+
+  /* ═══════════════════════════════════════════════════════════
+     1.2 字体系统 — GB/T 7713 学术论文规范
+     ═══════════════════════════════════════════════════════════ */
+
+  --font-body: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+               Georgia, "Times New Roman", serif;
+
+  --font-heading: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC",
+                  "Microsoft YaHei", "Arial", sans-serif;
+
+  --font-code: "Courier New", "Consolas", "Source Code Pro", monospace;
+
+  --font-mermaid: var(--font-heading);
+
+  /* ═══════════════════════════════════════════════════════════
+     1.3 字号 & 间距 — 屏幕 px 单位
+     ═══════════════════════════════════════════════════════════ */
+
+  --font-size-root: 16px;
+
+  --font-scale-h1: 1.375;    /* 22px — 三号（论文题目）  */
+  --font-scale-h2: 1.125;    /* 18px — 四号（一级节）    */
+  --font-scale-h3: 1.0;      /* 16px — 小四号（二级节）  */
+  --font-scale-h4: 1.0;      /* 16px — 小四号（三级节）  */
+  --font-scale-h5: 0.875;    /* 14px — 五号              */
+  --font-scale-h6: 0.875;    /* 14px — 五号              */
+
+  --font-size-mermaid: 12px;
+
+  --line-height-body: 1.5;
+  --line-height-heading: 1.35;
+  --line-height-code: 1.5;
+
+  /* ═══════════════════════════════════════════════════════════
+     1.4 圆角 & 间距 — 学术论文：直角优先
+     ═══════════════════════════════════════════════════════════ */
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --content-width: 210mm;
+
+  --page-margin-top: 25mm;
+  --page-margin-bottom: 25mm;
+  --page-margin-left: 30mm;
+  --page-margin-right: 25mm;
+
+  /* ═══════════════════════════════════════════════════════════
+     1.5 灰度色板 — 10 级亮度感知
+     ═══════════════════════════════════════════════════════════ */
+
+  --gray-0:   #ffffff;
+  --gray-1:   #fafafa;
+  --gray-2:   #f5f5f5;
+  --gray-3:   #eeeeee;
+  --gray-4:   #e0e0e0;
+  --gray-5:   #cccccc;
+  --gray-6:   #999999;
+  --gray-7:   #666666;
+  --gray-8:   #333333;
+  --gray-9:   #111111;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — 语义映射 (Semantic Mapping)
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ── 2.1 编辑区表面色 ── */
+  --bg-color:           var(--seed-surface);
+  --surface-color:      var(--seed-panel);
+  --surface-alt:        var(--seed-panel-alt);
+
+  /* ── 2.2 编辑区文字色 ── */
+  --text-color:         var(--seed-ink);
+  --heading-color:      var(--seed-ink);
+  --text-muted:         var(--seed-ink-muted);
+  --text-dim:           var(--seed-ink-dim);
+
+  /* ── 2.3 链接 & 强调 ── */
+  --link-color:         var(--seed-ink);
+  --accent-color:       var(--seed-ink);
+  --accent-dark:        var(--seed-ink);
+  --accent-light:       var(--gray-4);
+  --selection-bg:       rgba(0, 0, 0, 0.12);
+
+  /* ── 2.4 边框 & 分割线 ── */
+  --border-color:       var(--seed-border);
+  --blockquote-border:  var(--seed-ink);
+  --hr-color:           var(--seed-ink);
+
+  /* ── 2.5 内联代码 ── */
+  --code-bg:            var(--gray-3);
+  --code-color:         var(--seed-ink);
+
+  /* ── 2.6 代码块 ── */
+  --code-block-bg:      var(--seed-panel);
+  --code-block-text:    var(--seed-ink);
+  --code-block-color:   var(--seed-ink);
+
+  /* ── 2.7 引用块 ── */
+  --blockquote-bg:      var(--seed-panel-alt);
+
+  /* ── 2.8 表格 — 三线表规范 ── */
+  --table-header-bg:    transparent;
+  --table-border:       var(--seed-ink);
+
+  /* ── 2.9 表格 — 表头文字 ── */
+  --table-header-text:  var(--seed-ink);
+
+  /* ── 2.10 滚动条 ── */
+  --scrollbar-thumb:    var(--gray-5);
+  --scrollbar-thumb-hover: var(--gray-6);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — Mermaid 图表变量
+   学术论文图表：白底黑框灰度，印刷友好
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ── 3.1 容器 ── */
+  --mermaid-background:   var(--seed-surface);
+  --mermaid-border-color: var(--gray-5);
+  --mermaid-border-radius: var(--radius-md);
+  --mermaid-padding:     20px;
+
+  /* ── 3.2 字体 ── */
+  --mermaid-font-family:  var(--font-mermaid);
+  --mermaid-font-size:    var(--font-size-mermaid);
+
+  /* ── 3.3 节点 ── */
+  --mermaid-node-fill:        var(--gray-3);
+  --mermaid-node-bkg:         var(--gray-2);
+  --mermaid-node-stroke:      var(--gray-8);
+  --mermaid-node-stroke-width: 1px;
+  --mermaid-node-text:        var(--seed-ink);
+
+  /* ── 3.4 连线 ── */
+  --mermaid-edge-stroke:       var(--gray-8);
+  --mermaid-edge-stroke-width: 1px;
+
+  /* ── 3.5 聚类 ── */
+  --mermaid-cluster-fill:      var(--gray-1);
+  --mermaid-cluster-stroke:    var(--gray-7);
+
+  /* ── 3.6 标签 ── */
+  --mermaid-label-text:      var(--seed-ink);
+  --mermaid-edge-label-text: var(--seed-ink);
+  --mermaid-edge-label-bg:   var(--seed-surface);
+
+  /* ── 3.7 标题 & 坐标轴 ── */
+  --mermaid-title-text:      var(--seed-ink);
+  --mermaid-axis-text:       var(--gray-7);
+  --mermaid-highlight:       var(--gray-8);
+
+  /* ── 3.8 人物节点 ── */
+  --mermaid-person-stroke:   var(--gray-8);
+  --mermaid-person-bkg:      var(--gray-2);
+
+  /* ── 3.9 偏移 ── */
+  --mermaid-label-offset-y: 0px;
+
+  /* ── 3.10 灰度色板（多系列区分） ── */
+  --mermaid-cscale0: var(--gray-6);
+  --mermaid-cscale1: var(--gray-7);
+  --mermaid-cscale2: var(--gray-6);
+  --mermaid-cscale3: var(--gray-8);
+  --mermaid-cscale4: var(--gray-6);
+  --mermaid-cscale5: var(--gray-7);
+  --mermaid-cscale6: var(--gray-8);
+  --mermaid-cscale7: var(--gray-6);
+  --mermaid-cscale8: var(--gray-7);
+  --mermaid-cscale9: var(--gray-6);
+  --mermaid-cscale10: var(--gray-8);
+  --mermaid-cscale11: var(--gray-7);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — 排版微调变量
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+  --line-height-base: var(--line-height-body);
+}
+
+pre {
+  --select-text-bg-color: rgba(0, 0, 0, 0.12);
+  --select-text-font-color: var(--seed-ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION 5 — 选择器级微调 (Selector Fine-Tuning)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 5.1 全局：纯白底 + 宋体 + 两端对齐 ── */
+html { font-size: var(--font-size-root); -webkit-font-smoothing: antialiased; }
+
+body.theme-custom, html, body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  line-height: var(--line-height-body);
+  text-align: justify;
+}
+
+body.theme-custom #editor { max-width: var(--content-width); margin: 0 auto; padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left); }
+#write { max-width: var(--content-width); margin: 0 auto; padding: 0; }
+#write > ul:first-child, #write > ol:first-child { margin-top: 30px; }
+
+/* ── 5.2 标题：黑体，GB/T 7713 学术论文规范 ── */
+h1, h2, h3, h4, h5, h6,
+body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+  position: relative;
+  color: var(--heading-color);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: var(--line-height-heading);
+  text-indent: 0;
+}
+
+body.theme-custom h1 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h1));
+  text-align: center;
+  margin-top: 32px;
+  margin-bottom: 24px;
+}
+
+body.theme-custom h2 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h2));
+  margin-top: 26px;
+  margin-bottom: 14px;
+}
+
+body.theme-custom h3 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h3));
+  margin-top: 18px;
+  margin-bottom: 10px;
+}
+
+body.theme-custom h4 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h4));
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+body.theme-custom h5 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h5));
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+
+body.theme-custom h6 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h6));
+  color: var(--text-muted);
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor,
+h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor { text-decoration: none; }
+
+/* ── 5.3 正文：宋体，首行缩进 2em ── */
+body.theme-custom p, body.theme-custom #write > p {
+  margin: 0;
+  line-height: var(--line-height-body);
+  text-align: justify;
+  text-indent: 2em;
+  font-size: var(--font-size-root);
+}
+body.theme-custom p + p { margin-top: 0; }
+
+/* ── 5.4 内联元素 ── */
+strong, body.theme-custom strong { color: var(--text-color); font-weight: 700; }
+em, body.theme-custom em { font-style: italic; color: var(--text-color); }
+em strong, strong em, body.theme-custom em strong, body.theme-custom strong em { color: var(--text-color); font-weight: 700; }
+
+a, body.theme-custom a { color: var(--link-color); text-decoration: none; border-bottom: 1px solid var(--link-color); }
+a:hover, body.theme-custom a:hover { text-decoration: none; }
+
+u, body.theme-custom u {
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1px;
+}
+
+mark, body.theme-custom mark {
+  background: var(--accent-light);
+  color: var(--text-color);
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+}
+
+del, s { color: var(--text-dim); }
+
+/* ── 5.5 引用块 ── */
+blockquote, body.theme-custom blockquote {
+  margin: 10px 0;
+  padding: 10px 16px 10px 20px;
+  border-left: 3px solid var(--blockquote-border);
+  background: var(--blockquote-bg);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+blockquote p, body.theme-custom blockquote p { margin: 4px 0; text-indent: 0; }
+
+/* ── 5.6 分割线 ── */
+hr, body.theme-custom hr { border: none; border-top: 1px solid var(--hr-color); margin: 32px 0; height: 0; }
+
+/* ── 5.7 列表：GB/T 7713 学术论文规范 ── */
+body.theme-custom ul, body.theme-custom ol, body.theme-custom li { margin: 0; padding: 0; }
+
+body.theme-custom #editor .ProseMirror > ul,
+body.theme-custom #editor .ProseMirror > ol,
+body.theme-custom #write > ul:first-of-type,
+body.theme-custom #write > ol:first-of-type {
+  margin: 6px 0 6px 2em;
+  padding-left: 1.5em;
+  list-style: none;
+  counter-reset: ol-lv1 ul-lv1;
+}
+
+body.theme-custom ul ul, body.theme-custom ul ol,
+body.theme-custom ol ul, body.theme-custom ol ol {
+  margin: 0;
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+body.theme-custom li {
+  line-height: 1.6;
+  font-family: var(--font-body);
+  font-size: var(--font-size-root);
+  font-weight: normal;
+  text-indent: 0;
+  list-style: none;
+  padding: 2px 0;
+}
+
+body.theme-custom li::before { content: ""; display: inline; margin-right: 0.35em; }
+
+/* ProseMirror li > p 内联化 */
+body.theme-custom #editor .ProseMirror li > p {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  text-indent: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+}
+
+body.theme-custom li strong { font-family: inherit; font-weight: 700; }
+
+/* 有序列表：1. → (1) → ① → i. */
+body.theme-custom ol > li { counter-increment: ol-lv1; }
+body.theme-custom ol > li::before { content: counter(ol-lv1) "."; font-family: var(--font-body); }
+
+body.theme-custom ol > li > ol { counter-reset: ol-lv2; }
+body.theme-custom ol > li > ol > li { counter-increment: ol-lv2; }
+body.theme-custom ol > li > ol > li::before { content: "(" counter(ol-lv2) ")"; font-family: var(--font-body); }
+
+body.theme-custom ol > li > ol > li > ol { counter-reset: ol-lv3; }
+body.theme-custom ol > li > ol > li > ol > li { counter-increment: ol-lv3; }
+body.theme-custom ol > li > ol > li > ol > li::before { content: counter(ol-lv3, cjk-ideographic) ""; font-family: var(--font-body); }
+
+body.theme-custom ol ol ol ol > li::before { content: counter(list-item, lower-roman) "."; font-family: var(--font-body); }
+
+/* 无序列表：■ → ● → ○ → ◆ */
+body.theme-custom ul > li { counter-increment: ul-lv1; }
+body.theme-custom ul > li::before { content: "\25A0\00A0"; }
+
+body.theme-custom ul > li > ul { counter-reset: ul-lv2; }
+body.theme-custom ul > li > ul > li { counter-increment: ul-lv2; }
+body.theme-custom ul > li > ul > li::before { content: "\25CF\00A0"; }
+
+body.theme-custom ul > li > ul > li > ul { counter-reset: ul-lv3; }
+body.theme-custom ul > li > ul > li > ul > li { counter-increment: ul-lv3; }
+body.theme-custom ul > li > ul > li > ul > li::before { content: "\25CB\00A0"; }
+
+body.theme-custom ul ul ul ul > li::before { content: "\25C6\00A0"; }
+
+/* 混合嵌套 */
+body.theme-custom ul > li > ol { counter-reset: ol-mix2; }
+body.theme-custom ul > li > ol > li { counter-increment: ol-mix2; }
+body.theme-custom ul > li > ol > li::before { content: "(" counter(ol-mix2) ")"; font-family: var(--font-body); }
+body.theme-custom ul > li > ol > li > ol { counter-reset: ol-mix3; }
+body.theme-custom ul > li > ol > li > ol > li { counter-increment: ol-mix3; }
+body.theme-custom ul > li > ol > li > ol > li::before { content: counter(ol-mix3, lower-roman) "."; font-family: var(--font-body); }
+
+body.theme-custom ol > li > ul { counter-reset: ul-mix2; }
+body.theme-custom ol > li > ul > li { counter-increment: ul-mix2; }
+body.theme-custom ol > li > ul > li::before { content: "\25CF\00A0"; }
+body.theme-custom ol > li > ul > li > ul { counter-reset: ul-mix3; }
+body.theme-custom ol > li > ul > li > ul > li { counter-increment: ul-mix3; }
+body.theme-custom ol > li > ul > li > ul > li::before { content: "\25CB\00A0"; }
+
+.md-task-list-item > input { margin-left: -1.3em; margin-top: 0.3em; }
+
+/* ── 5.8 内联代码 ── */
+code, tt, body.theme-custom code, body.theme-custom tt {
+  font-family: var(--font-code);
+  font-size: 0.88em;
+  padding: 1px 6px;
+  margin: 0 1px;
+  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  color: var(--code-color);
+  border: none;
+}
+
+/* ── 5.9 代码块 ── */
+pre.md-fences {
+  font-family: var(--font-code);
+  font-size: 14px;
+  line-height: var(--line-height-code);
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin: 16px 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+}
+pre.md-fences code { background: transparent; color: inherit; padding: 0; margin: 0; border-radius: 0; border: none; }
+
+body.theme-custom #editor .ProseMirror pre {
+  font-family: var(--font-code);
+  font-size: 14px;
+  line-height: var(--line-height-code);
+  background: var(--code-block-bg) !important;
+  color: var(--code-block-text) !important;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin: 16px 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+}
+body.theme-custom #editor .ProseMirror pre code {
+  background: transparent !important;
+  color: var(--code-block-text) !important;
+  padding: 0; margin: 0; border-radius: 0; border: none;
+}
+
+/* ── 5.10 代码语法高亮（黑白打印友好） ── */
+.cm-s-inner { font-family: var(--font-code); font-size: 14px; line-height: var(--line-height-code); }
+
+body.theme-custom .token.comment, body.theme-custom .token.prolog,
+body.theme-custom .token.doctype, body.theme-custom .token.cdata,
+.cm-s-inner .cm-comment, .cm-s-inner .cm-quote, .cm-s-inner .cm-hr { color: var(--text-dim); font-style: italic; }
+
+body.theme-custom .token.punctuation, .cm-s-inner .cm-meta { color: var(--text-muted); }
+
+body.theme-custom .token.keyword, body.theme-custom .token.important,
+body.theme-custom .token.selector, body.theme-custom .token.important,
+.cm-s-inner .cm-keyword, .cm-s-inner .cm-attribute { color: var(--text-color); font-weight: 700; }
+
+body.theme-custom .token.property, body.theme-custom .token.tag,
+body.theme-custom .token.boolean, body.theme-custom .token.number,
+body.theme-custom .token.constant, body.theme-custom .token.symbol,
+body.theme-custom .token.attr-name, .cm-s-inner .cm-property { color: var(--text-muted); }
+
+body.theme-custom .token.string, body.theme-custom .token.char,
+body.theme-custom .token.attr-value, .cm-s-inner .cm-string { color: var(--text-color); }
+
+body.theme-custom .token.regex, body.theme-custom .token.variable,
+.cm-s-inner .cm-variable-2, .cm-s-inner .cm-variable-3 { color: var(--text-muted); }
+
+body.theme-custom .token.operator, body.theme-custom .token.entity,
+body.theme-custom .token.url, .cm-s-inner .cm-operator { color: var(--text-color); }
+
+body.theme-custom .token.atrule, body.theme-custom .token.attr-value,
+.cm-s-inner .cm-atom, .cm-s-inner .cm-number { color: var(--text-muted); }
+
+body.theme-custom .token.function, .cm-s-inner .cm-def { color: var(--text-color); font-weight: 700; }
+
+body.theme-custom .token.class-name, .cm-s-inner .cm-variable { color: var(--text-color); }
+
+body.theme-custom .token.deleted { color: var(--text-dim); }
+body.theme-custom .token.inserted { color: var(--text-color); }
+
+/* ── 5.11 表格：三线表规范 ── */
+body.theme-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 2px solid var(--table-border);
+  border-bottom: 2px solid var(--table-border);
+  border-left: none;
+  border-right: none;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 18px auto;
+}
+
+body.theme-custom table th {
+  border: none;
+  border-bottom: 2px solid var(--table-border);
+  background: var(--table-header-bg);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--table-header-text);
+  padding: 8px 10px;
+  text-align: center;
+  text-indent: 0;
+  vertical-align: middle;
+}
+
+body.theme-custom table td {
+  border: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-color);
+  padding: 8px 10px;
+  text-align: left;
+  text-indent: 0;
+  vertical-align: top;
+}
+
+body.theme-custom table p, body.theme-custom table td p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  text-indent: 0;
+  line-height: 1.4;
+}
+
+body.theme-custom table strong { font-weight: 700; font-family: inherit; }
+
+/* ── 5.12 图片 ── */
+body.theme-custom img { max-width: 100%; border-radius: var(--radius-sm); }
+body.theme-custom .md-image { margin: 16px 0; text-align: center; }
+body.theme-custom .md-image img { max-width: 100%; height: auto; }
+body.theme-custom .md-image .md-image-caption { font-size: 14px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+
+/* ── 5.13 数学公式 ── */
+body.theme-custom .math-inline, body.theme-custom .math-block {
+  color: var(--text-color);
+  font-family: "Times New Roman", "SimSun", serif;
+}
+
+body.theme-custom .math-block {
+  margin: 16px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* ── 5.14 Mermaid 图表 ── */
+body.theme-custom .mermaid-block,
+body.theme-custom .mermaid-preview,
+.md-diagram-panel.md-mermaid {
+  background: var(--mermaid-background);
+  border: 1px solid var(--mermaid-border-color);
+  border-radius: var(--mermaid-border-radius);
+  padding: var(--mermaid-padding);
+  margin: 16px 0;
+  font-family: var(--mermaid-font-family);
+  font-size: var(--mermaid-font-size);
+}
+
+body.theme-custom .mermaid-preview svg { max-width: 100%; height: auto; }
+
+body.theme-custom .mermaid-block + p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-color);
+  margin-top: 8px;
+}
+
+/* ── 5.15 脚注 ── */
+body.theme-custom .footnotes {
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  margin-top: 32px;
+  padding-top: 16px;
+}
+
+body.theme-custom .footnotes .footnote { margin: 8px 0; }
+body.theme-custom .footnotes .footnote-ref { font-size: 12px; }
+
+/* ── 5.16 响应式 ── */
+@media only screen and (max-width: 768px) {
+  body.theme-custom #editor { padding: 20px; }
+  body.theme-custom h1 { font-size: calc(var(--font-size-root) * 1.25); }
+  body.theme-custom h2 { font-size: calc(var(--font-size-root) * 1.1); }
+  body.theme-custom .mermaid-block { padding: 12px; }
+  body.theme-custom .mermaid-preview svg { max-width: 100% !important; height: auto !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION 6 — 打印 / 导出
+   原则：屏幕样式的完整镜像。每个屏幕属性都必须在 print 中显式声明。
+   学术论文印刷：保留黑体标题 + 宋体正文 + 三线表 + 纯白底色
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4;
+    margin: 25mm 25mm 25mm 30mm;
+
+    @bottom-center {
+      content: counter(page);
+      font-family: "SimSun", "Songti SC", serif;
+      font-size: 12px;
+      color: var(--gray-9);
+    }
+  }
+
+  /* ── 6.0 变量重声明 ── */
+  body.theme-custom {
+    --seed-surface:       #ffffff;
+    --seed-panel:         #f5f5f5;
+    --seed-panel-alt:     #fafafa;
+    --seed-ink:           #111111;
+    --seed-ink-muted:     #333333;
+    --seed-ink-dim:       #666666;
+    --seed-border:        #111111;
+    --seed-border-light:  #cccccc;
+    --gray-0:             #ffffff;
+    --gray-1:             #fafafa;
+    --gray-2:             #f5f5f5;
+    --gray-3:             #eeeeee;
+    --gray-4:             #e0e0e0;
+    --gray-5:             #cccccc;
+    --gray-6:             #999999;
+    --gray-7:             #666666;
+    --gray-8:             #333333;
+    --gray-9:             #111111;
+    --font-size-root:     16px;
+    --line-height-body:   1.5;
+    --line-height-heading: 1.35;
+    --line-height-code:   1.5;
+    --font-scale-h1:      1.375;
+    --font-scale-h2:      1.125;
+    --font-scale-h3:      1.0;
+    --font-scale-h4:      1.0;
+    --font-scale-h5:      0.875;
+    --font-scale-h6:      0.875;
+    --content-width:      210mm;
+    --font-size-mermaid:  12px;
+    --radius-sm:          0px;
+    --radius-md:          0px;
+    --radius-lg:          0px;
+    --page-margin-top:    25mm;
+    --page-margin-bottom: 25mm;
+    --page-margin-left:   30mm;
+    --page-margin-right:  25mm;
+    --bg-color:           var(--seed-surface);
+    --surface-color:      var(--seed-panel);
+    --surface-alt:        var(--seed-panel-alt);
+    --text-color:         var(--seed-ink);
+    --heading-color:      var(--seed-ink);
+    --text-muted:         var(--seed-ink-muted);
+    --text-dim:           var(--seed-ink-dim);
+    --link-color:         var(--seed-ink);
+    --accent-color:       var(--seed-ink);
+    --accent-dark:        var(--seed-ink);
+    --accent-light:       var(--gray-4);
+    --selection-bg:       rgba(0, 0, 0, 0.12);
+    --border-color:       var(--seed-border);
+    --blockquote-border:  var(--seed-ink);
+    --hr-color:           var(--seed-ink);
+    --code-bg:            var(--gray-3);
+    --code-color:         var(--seed-ink);
+    --code-block-bg:      var(--seed-panel);
+    --code-block-text:    var(--seed-ink);
+    --code-block-color:   var(--seed-ink);
+    --blockquote-bg:      var(--seed-panel-alt);
+    --table-header-bg:    transparent;
+    --table-header-text:  var(--seed-ink);
+    --table-border:       var(--seed-ink);
+    --scrollbar-thumb:    var(--gray-5);
+    --scrollbar-thumb-hover: var(--gray-6);
+    --font-body: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+                 Georgia, "Times New Roman", serif;
+    --font-heading: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC",
+                    "Microsoft YaHei", "Arial", sans-serif;
+    --font-code: "Courier New", "Consolas", "Source Code Pro", monospace;
+    --font-mermaid: var(--font-heading);
+    --mermaid-background:   var(--seed-surface);
+    --mermaid-border-color: var(--gray-5);
+    --mermaid-border-radius: var(--radius-md);
+    --mermaid-padding:     20px;
+    --mermaid-font-family:  var(--font-mermaid);
+    --mermaid-font-size:    var(--font-size-mermaid);
+    --mermaid-node-fill:        var(--gray-3);
+    --mermaid-node-bkg:         var(--gray-2);
+    --mermaid-node-stroke:      var(--gray-8);
+    --mermaid-node-stroke-width: 1px;
+    --mermaid-node-text:        var(--seed-ink);
+    --mermaid-edge-stroke:       var(--gray-8);
+    --mermaid-edge-stroke-width: 1px;
+    --mermaid-cluster-fill:      var(--gray-1);
+    --mermaid-cluster-stroke:    var(--gray-7);
+    --mermaid-label-text:      var(--seed-ink);
+    --mermaid-edge-label-text: var(--seed-ink);
+    --mermaid-edge-label-bg:   var(--seed-surface);
+    --mermaid-title-text:      var(--seed-ink);
+    --mermaid-axis-text:       var(--gray-7);
+    --mermaid-highlight:       var(--gray-8);
+    --mermaid-person-stroke:   var(--gray-8);
+    --mermaid-person-bkg:      var(--gray-2);
+    --mermaid-label-offset-y: 0px;
+    --mermaid-cscale0: var(--gray-6);
+    --mermaid-cscale1: var(--gray-7);
+    --mermaid-cscale2: var(--gray-6);
+    --mermaid-cscale3: var(--gray-8);
+    --mermaid-cscale4: var(--gray-6);
+    --mermaid-cscale5: var(--gray-7);
+    --mermaid-cscale6: var(--gray-8);
+    --mermaid-cscale7: var(--gray-6);
+    --mermaid-cscale8: var(--gray-7);
+    --mermaid-cscale9: var(--gray-6);
+    --mermaid-cscale10: var(--gray-8);
+    --mermaid-cscale11: var(--gray-7);
+  }
+
+  /* ── 6.1 根元素：字号 + 宋体 + 两端对齐 + 底色 ── */
+  html { font-size: var(--font-size-root) !important; }
+  html, body, body.theme-custom {
+    background: var(--seed-surface) !important;
+    color: var(--seed-ink) !important;
+    font-family: var(--font-body) !important;
+    font-size: var(--font-size-root) !important;
+    line-height: var(--line-height-body) !important;
+    text-align: justify !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ── 6.2 编辑区 ── */
+  #titlebar, #slides-btn, #agent-dot { display: none !important; }
+  #editor { height: auto !important; overflow: visible !important; padding: 0 !important; }
+  #write { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+
+  /* ── 6.3 标题：黑体，GB/T 7713 学术论文规范 ── */
+  body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+  body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+    font-family: var(--font-heading) !important;
+    color: var(--heading-color) !important;
+    font-weight: 700 !important;
+    line-height: var(--line-height-heading) !important;
+    text-indent: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom h1 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h1)) !important;
+    text-align: center !important;
+    margin-top: 32px !important;
+    margin-bottom: 24px !important;
+  }
+
+  body.theme-custom h2 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h2)) !important;
+    margin-top: 26px !important;
+    margin-bottom: 14px !important;
+  }
+
+  body.theme-custom h3 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h3)) !important;
+    margin-top: 18px !important;
+    margin-bottom: 10px !important;
+  }
+
+  body.theme-custom h4 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h4)) !important;
+    margin-top: 18px !important;
+    margin-bottom: 8px !important;
+  }
+
+  body.theme-custom h5 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h5)) !important;
+    margin-top: 16px !important;
+    margin-bottom: 6px !important;
+  }
+
+  body.theme-custom h6 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h6)) !important;
+    color: var(--text-muted) !important;
+    margin-top: 14px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* ── 6.4 正文：宋体，首行缩进 2em ── */
+  body.theme-custom p {
+    font-family: var(--font-body) !important;
+    color: var(--text-color) !important;
+    font-size: var(--font-size-root) !important;
+    text-indent: 2em !important;
+    line-height: var(--line-height-body) !important;
+    text-align: justify !important;
+    margin: 0 !important;
+  }
+
+  /* ── 6.5 内联强调 ── */
+  body.theme-custom strong {
+    color: var(--text-color) !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom em {
+    font-style: italic !important;
+    color: var(--text-color) !important;
+  }
+
+  /* ── 6.6 链接 ── */
+  body.theme-custom a {
+    color: var(--link-color) !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid var(--link-color) !important;
+  }
+
+  /* ── 6.7 引用块 ── */
+  body.theme-custom blockquote {
+    background: var(--blockquote-bg) !important;
+    border-left: 3px solid var(--blockquote-border) !important;
+    color: var(--text-color) !important;
+    font-family: var(--font-body) !important;
+    font-size: 14px !important;
+    margin: 10px 0 !important;
+    padding: 10px 16px 10px 20px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom blockquote p {
+    margin: 4px 0 !important;
+    text-indent: 0 !important;
+  }
+
+  /* ── 6.8 分割线 ── */
+  body.theme-custom hr {
+    border: none !important;
+    border-top: 1px solid var(--hr-color) !important;
+    margin: 32px 0 !important;
+  }
+
+  /* ── 6.9 列表：GB/T 7713 学术论文规范 ── */
+  body.theme-custom ul, body.theme-custom ol {
+    margin: 6px 0 6px 2em !important;
+    padding-left: 1.5em !important;
+    list-style: none !important;
+  }
+  body.theme-custom ul ul, body.theme-custom ul ol,
+  body.theme-custom ol ul, body.theme-custom ol ol {
+    margin: 0 !important;
+    padding-left: 1.5em !important;
+    list-style: none !important;
+  }
+
+  body.theme-custom li {
+    font-family: var(--font-body) !important;
+    font-size: var(--font-size-root) !important;
+    line-height: 1.6 !important;
+    color: var(--text-color) !important;
+    text-indent: 0 !important;
+    list-style: none !important;
+    padding: 2px 0 !important;
+  }
+  body.theme-custom li > p {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-indent: 0 !important;
+  }
+  body.theme-custom li strong {
+    font-family: inherit !important;
+    font-weight: 700 !important;
+  }
+  body.theme-custom li::before {
+    display: inline !important;
+    margin-right: 0.35em !important;
+  }
+
+  body.theme-custom ol { counter-reset: ol-lv1 !important; }
+  body.theme-custom ol > li { counter-increment: ol-lv1 !important; }
+  body.theme-custom ol > li::before { content: counter(ol-lv1) "." !important; }
+  body.theme-custom ol > li > ol { counter-reset: ol-lv2 !important; }
+  body.theme-custom ol > li > ol > li { counter-increment: ol-lv2 !important; }
+  body.theme-custom ol > li > ol > li::before { content: "(" counter(ol-lv2) ")" !important; }
+  body.theme-custom ol > li > ol > li > ol { counter-reset: ol-lv3 !important; }
+  body.theme-custom ol > li > ol > li > ol > li { counter-increment: ol-lv3 !important; }
+  body.theme-custom ol > li > ol > li > ol > li::before { content: counter(ol-lv3, cjk-ideographic) "" !important; }
+
+  body.theme-custom ul { counter-reset: ul-lv1 !important; }
+  body.theme-custom ul > li { counter-increment: ul-lv1 !important; }
+  body.theme-custom ul > li::before { content: "\25A0\00A0" !important; }
+  body.theme-custom ul > li > ul { counter-reset: ul-lv2 !important; }
+  body.theme-custom ul > li > ul > li { counter-increment: ul-lv2 !important; }
+  body.theme-custom ul > li > ul > li::before { content: "\25CF\00A0" !important; }
+  body.theme-custom ul > li > ul > li > ul { counter-reset: ul-lv3 !important; }
+  body.theme-custom ul > li > ul > li > ul > li { counter-increment: ul-lv3 !important; }
+  body.theme-custom ul > li > ul > li > ul > li::before { content: "\25CB\00A0" !important; }
+  body.theme-custom ul ul ul ul > li::before { content: "\25C6\00A0" !important; }
+
+  /* ── 6.10 内联代码 ── */
+  body.theme-custom code {
+    background: var(--code-bg) !important;
+    color: var(--code-color) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 1px 6px !important;
+    font-family: var(--font-code) !important;
+    font-size: 0.88em !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ── 6.11 代码块 ── */
+  body.theme-custom pre {
+    background: var(--code-block-bg) !important;
+    color: var(--code-block-text) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    font-size: 14px !important;
+    line-height: var(--line-height-code) !important;
+    font-family: var(--font-code) !important;
+    padding: 14px 18px !important;
+    margin: 16px 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom pre code {
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* ── 6.12 表格：三线表规范 ── */
+  body.theme-custom table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border-top: 2px solid var(--table-border) !important;
+    border-bottom: 2px solid var(--table-border) !important;
+    border-left: none !important;
+    border-right: none !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    margin: 18px auto !important;
+  }
+  body.theme-custom table th {
+    border: none !important;
+    border-bottom: 2px solid var(--table-border) !important;
+    background: var(--table-header-bg) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: var(--font-heading) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--table-header-text) !important;
+    padding: 8px 10px !important;
+    text-align: center !important;
+    text-indent: 0 !important;
+    vertical-align: middle !important;
+  }
+  body.theme-custom table td {
+    border: none !important;
+    font-family: var(--font-body) !important;
+    font-size: 14px !important;
+    color: var(--text-color) !important;
+    padding: 8px 10px !important;
+    text-align: left !important;
+    text-indent: 0 !important;
+    vertical-align: top !important;
+  }
+  body.theme-custom table p, body.theme-custom table td p {
+    font-family: var(--font-body) !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    text-indent: 0 !important;
+    line-height: 1.4 !important;
+  }
+  body.theme-custom table strong {
+    font-weight: 700 !important;
+    font-family: inherit !important;
+  }
+
+  /* ── 6.13 数学公式 ── */
+  body.theme-custom .math-inline, body.theme-custom .math-block {
+    color: var(--text-color) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ── 6.14 Mermaid 图表 ── */
+  body.theme-custom .mermaid-block,
+  body.theme-custom .mermaid-preview,
+  .md-diagram-panel.md-mermaid {
+    background: var(--mermaid-background) !important;
+    border: 1px solid var(--mermaid-border-color) !important;
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom .mermaid-preview svg,
+  body.theme-custom .mermaid-preview svg * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom .mermaid-block + p {
+    font-family: var(--font-body) !important;
+    font-size: 14px !important;
+    text-align: center !important;
+    color: var(--text-color) !important;
+  }
+
+  /* ── 6.15 脚注 ── */
+  body.theme-custom .footnotes {
+    border-top: 1px solid var(--border-color) !important;
+    font-size: 12px !important;
+  }
+
+  /* ── 6.16 分页控制 ── */
+  body.theme-custom h1 { page-break-before: avoid; }
+  body.theme-custom h2, body.theme-custom h3, body.theme-custom h4,
+  body.theme-custom h5, body.theme-custom h6 { page-break-after: avoid; }
+  body.theme-custom table, body.theme-custom figure, body.theme-custom img { page-break-inside: avoid; }
+  body.theme-custom p { orphans: 3; widows: 3; }
+
+  /* ── 6.17 防止内容溢出 ── */
+  body.theme-custom pre, body.theme-custom .md-fences,
+  body.theme-custom .mermaid-block, body.theme-custom .md-diagram-panel {
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+}
+
+/* ── 5.17 滚动条 ── */
+body.theme-custom { scrollbar-width: auto; scrollbar-color: var(--scrollbar-thumb); }
+
+/* ── 5.18 源码编辑模式 ── */
+body.theme-custom #source-editor {
+  font-family: var(--font-code);
+  font-size: var(--font-size-root);
+  line-height: var(--line-height-code);
+  background: var(--bg-color);
+  color: var(--text-color);
+}

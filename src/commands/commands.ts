@@ -8,14 +8,18 @@ import { exportPDF } from '../export/pdf-exporter';
 /**
  * 注册所有 ColaView MD 命令
  * @param context VSCode 扩展上下文
- * @param previewManager 预览面板管理器
+ * @param previewManager 预览面板管理器（可能为 null）
  */
 export function registerCommands(
     context: vscode.ExtensionContext,
-    previewManager: PreviewManager
+    previewManager: PreviewManager | null
 ): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('colaview.showPreview', () => {
+            if (!previewManager) {
+                vscode.window.showErrorMessage('ColaView: Preview manager not available');
+                return;
+            }
             previewManager.showPreview();
         }),
 
@@ -25,7 +29,18 @@ export function registerCommands(
                 vscode.window.showWarningMessage('Open a Markdown file first');
                 return;
             }
-            await exportHTML(editor.document);
+            if (!previewManager) {
+                vscode.window.showErrorMessage('ColaView: Preview manager not available');
+                return;
+            }
+            // Ensure preview panel is open and get rendered HTML from WebView
+            previewManager.showPreview();
+            const renderedHTML = await previewManager.getExportHTML();
+            if (!renderedHTML) {
+                vscode.window.showWarningMessage('ColaView: Could not get rendered HTML from preview');
+                return;
+            }
+            await exportHTML(context, editor.document, renderedHTML);
         }),
 
         vscode.commands.registerCommand('colaview.exportPDF', async () => {
@@ -34,19 +49,31 @@ export function registerCommands(
                 vscode.window.showWarningMessage('Open a Markdown file first');
                 return;
             }
-            await exportPDF(editor.document);
+            if (!previewManager) {
+                vscode.window.showErrorMessage('ColaView: Preview manager not available');
+                return;
+            }
+            // Ensure preview panel is open and get rendered HTML from WebView
+            previewManager.showPreview();
+            const renderedHTML = await previewManager.getExportHTML();
+            if (!renderedHTML) {
+                vscode.window.showWarningMessage('ColaView: Could not get rendered HTML from preview');
+                return;
+            }
+            await exportPDF(context, editor.document, renderedHTML);
         }),
 
         vscode.commands.registerCommand('colaview.switchTheme', async () => {
-            const picked = await vscode.window.showQuickPick([
-                { label: 'Light', description: 'Clean & bright' },
-                { label: 'Dark', description: 'GitHub Dark style' },
-                { label: 'Elegant', description: 'Warm serif style' },
-                { label: 'Newsprint', description: 'Newsprint style' },
-            ]);
+            const list = ThemeManager.getThemeList();
+            const items: vscode.QuickPickItem[] = [
+                ...list.builtins.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), description: 'Built-in' })),
+                ...list.customs.map(t => ({ label: t, description: 'Custom' })),
+            ];
+            const picked = await vscode.window.showQuickPick(items);
             if (picked) {
-                await ThemeManager.switchTheme(picked.label.toLowerCase());
-                previewManager.showPreview();
+                const theme = picked.label.toLowerCase();
+                await ThemeManager.switchTheme(theme);
+                previewManager?.sendTheme(theme);
             }
         }),
 
@@ -56,7 +83,10 @@ export function registerCommands(
                 canSelectMany: false,
             });
             if (uris && uris[0]) {
-                await ThemeManager.importCustomTheme(uris[0]);
+                const result = await ThemeManager.importCustomTheme(uris[0]);
+                if (result) {
+                    previewManager?.sendCustomThemeCSS(result.name, result.css);
+                }
             }
         })
     );

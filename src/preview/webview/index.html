@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src file: data:;">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.46/dist/katex.min.css">
-    <base href="" id="base-tag">
-    <style id="theme-style"></style>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdn.jsdelivr.net vscode-webview-resource:; script-src 'unsafe-inline' vscode-webview-resource:; font-src https://cdn.jsdelivr.net vscode-webview-resource: data:; img-src file: data: vscode-webview-resource: https:; connect-src https: vscode-webview-resource:;">
+    <link rel="stylesheet" href="colamd.css" id="colamd-css">
     <style>
         html, body {
             height: 100%;
@@ -15,20 +13,93 @@
             overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        .colamd-preview-content {
+        #editor {
             max-width: 780px;
             margin: 0 auto;
             padding: 20px 40px 40px;
             min-height: 100vh;
-            word-wrap: break-word;
         }
-        .colamd-preview-content > :first-child { margin-top: 0; }
+        #editor > :first-child { margin-top: 0; }
+        /* Read-only mode: hide cursor, disable selection highlights */
+        .colamd-readonly .ProseMirror {
+            cursor: default;
+            outline: none;
+        }
+        .colamd-readonly .ProseMirror .ProseMirror-selectednode {
+            outline: none;
+        }
+
+        /* ── Context Menu ── */
+        .ctx-menu {
+            position: fixed;
+            z-index: 9999;
+            min-width: 180px;
+            background: var(--color-bg, #fff);
+            color: var(--color-text, #24292f);
+            border: 1px solid var(--color-border, #d0d7de);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            padding: 4px 0;
+            font-size: 13px;
+            line-height: 1.5;
+            user-select: none;
+        }
+        .ctx-menu-item {
+            position: relative;
+            padding: 6px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .ctx-menu-item:hover {
+            background: var(--color-accent-subtle, #ddf4ff);
+            color: var(--color-accent, #0969da);
+        }
+        .ctx-menu-disabled {
+            color: var(--color-text-muted, #8b949e);
+            pointer-events: none;
+        }
+        .ctx-menu-active {
+            font-weight: 600;
+        }
+        .ctx-menu-active::before {
+            content: '✓';
+            position: absolute;
+            left: 4px;
+        }
+        .ctx-menu-separator {
+            height: 1px;
+            margin: 4px 0;
+            background: var(--color-border, #d0d7de);
+        }
+        .ctx-menu-has-submenu {
+            padding-right: 28px;
+        }
+        .ctx-menu-has-submenu::after {
+            content: '▸';
+            position: absolute;
+            right: 10px;
+            color: var(--color-text-muted, #8b949e);
+        }
+        .ctx-menu-submenu {
+            position: absolute;
+            top: -4px;
+            left: 100%;
+            min-width: 160px;
+            background: var(--color-bg, #fff);
+            color: var(--color-text, #24292f);
+            border: 1px solid var(--color-border, #d0d7de);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            padding: 4px 0;
+            display: none;
+        }
+        .ctx-menu-has-submenu:hover > .ctx-menu-submenu {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div id="preview-root">
-        <div class="colamd-preview-content" id="preview-content"></div>
-    </div>
+    <div id="editor"></div>
     <script src="app.js"></script>
 </body>
 </html>

@@ -5,19 +5,44 @@ import { registerCommands } from './commands/commands';
 import { ThemeManager } from './themes/theme-manager';
 
 export function activate(context: vscode.ExtensionContext) {
-    // 1. 初始化主题管理器
-    ThemeManager.init(context);
-
-    // 2. 初始化预览管理器
-    const previewManager = new PreviewManager(context);
-
-    // 3. 注册所有命令
-    registerCommands(context, previewManager);
-
-    // 4. 自动预览（如果配置启用）
-    if (vscode.workspace.getConfiguration('colaview').get('autoPreview')) {
-        previewManager.showPreview();
+    try {
+        ThemeManager.init(context);
+    } catch (e) {
+        console.error('ColaView: ThemeManager.init failed:', e);
     }
+
+    let previewManager: PreviewManager | null = null;
+    try {
+        previewManager = new PreviewManager(context);
+    } catch (e) {
+        console.error('ColaView: PreviewManager init failed:', e);
+    }
+
+    try {
+        registerCommands(context, previewManager);
+    } catch (e) {
+        console.error('ColaView: registerCommands failed:', e);
+    }
+
+    if (previewManager && vscode.workspace.getConfiguration('colaview').get('autoPreview')) {
+        try {
+            previewManager.showPreview();
+        } catch (e) {
+            console.error('ColaView: autoPreview failed:', e);
+        }
+    }
+
+    // Sync plugin toggle settings to WebView
+    vscode.workspace.onDidChangeConfiguration(e => {
+        if (!previewManager) return;
+        const cfg = vscode.workspace.getConfiguration('colaview');
+        if (e.affectsConfiguration('colaview.plugins.math')) {
+            previewManager.togglePlugin('math', cfg.get('plugins.math', true));
+        }
+        if (e.affectsConfiguration('colaview.plugins.mermaid')) {
+            previewManager.togglePlugin('mermaid', cfg.get('plugins.mermaid', true));
+        }
+    });
 
     vscode.window.showInformationMessage('ColaView MD activated');
 }

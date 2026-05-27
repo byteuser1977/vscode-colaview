@@ -1,217 +1,197 @@
 # ColaView MD
 
-**ColaView MD — Rich Markdown Preview & PDF/HTML Export for VSCode**
-
-[![VSCode](https://img.shields.io/badge/VSCode-1.85%2B-blue)](https://code.visualstudio.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+[![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](package.json)
 
-## ✨ Features
+Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
-- **Rich Markdown Preview**: Full GFM (GitHub Flavored Markdown) support with syntax highlighting, tables, task lists, footnotes, and more
-- **Math Formula Rendering**: KaTeX integration for beautiful mathematical expressions (inline and display mode)
-- **Diagram Support**: Mermaid diagrams for flowcharts, sequence diagrams, class diagrams, and more
-- **PDF Export**: High-quality PDF generation with customizable page format and margins
-- **HTML Export**: Clean HTML output with optional image embedding and CDN support
-- **Multiple Themes**: Built-in themes including Light, Dark, Elegant, and Newsprint
-- **Custom Themes**: Import and use your own CSS themes for personalized preview experience
-- **Plugin System**: Extensible architecture with declarative plugin interface
+## Features
 
-## 🚀 Installation
+- **WYSIWYG Preview** — Milkdown-powered read-only editor renders Markdown as rich text in real-time
+- **Math Formulas** — KaTeX integration for inline `$...$` and display `$$...$$` expressions
+- **Mermaid Diagrams** — 17+ chart types: flowcharts, sequence, class, state, ER, Gantt, mind maps, etc.
+- **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
+- **HTML Export** — Standalone `.html` with embedded CSS, zero-dependency sharing
+- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + custom CSS import
+- **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
+- **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
+- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings at runtime
+- **Live Sync** — 150ms debounced update while editing
 
-### From VS Code Marketplace (Coming Soon)
+## Quick Start
 
-```bash
-# Search for "ColaView MD" in VS Code Extensions marketplace
-# Or install via command line:
-code --install-extension bytechain.vscode-colaview
+1. Install the extension
+2. Open a `.md` file in VS Code
+3. `Ctrl+Shift+P` → **"ColaView MD: Show Preview"**
+4. Preview opens in a side panel with rich rendering
+
+## Commands & Usage
+
+### Command Palette (`Ctrl+Shift+P`)
+
+| Command | Description |
+|---------|-------------|
+| `ColaView MD: Show Preview` | Open or focus the preview panel |
+| `ColaView MD: Export to PDF...` | Export current file as A4 PDF |
+| `ColaView MD: Export to HTML...` | Export as standalone HTML |
+| `ColaView MD: Switch Preview Theme...` | Choose from Light / Dark / Elegant / Newsprint |
+| `ColaView MD: Import Custom Theme...` | Load a `.css` file as custom theme |
+
+### Right-click Context Menu (in Preview)
+
+When the preview is open, right-click anywhere to access:
+
+| Menu Item | Description |
+|-----------|-------------|
+| **Export HTML** | Export current preview as standalone HTML |
+| **Export PDF** | Export current preview as A4 PDF |
+| **Theme ▸** | Submenu listing all built-in + custom themes (✓ marks active) |
+| **Import Theme...** | Open file picker to import a `.css` file |
+
+## Themes
+
+### Built-in Themes
+
+| Theme | Style | Best For |
+|-------|-------|----------|
+| **Light** | Clean white, blue accents | General use, documentation |
+| **Dark** | GitHub Dark palette | Night coding |
+| **Elegant** | Warm serif, beige tones | Academic papers, long-form |
+| **Newsprint** | Serif, print texture | Print preparation |
+
+### Custom Themes
+
+Place `.css` files in the `.themes/` directory at your workspace root:
+
+```
+my-project/
+├── .themes/
+│   ├── my-dark.css        # appears as "My-dark" in theme menu
+│   └── corporate.css      # appears as "Corporate" in theme menu
+└── README.md
 ```
 
-### From Source
+Custom themes are automatically detected and appear alongside built-in themes in both the command palette and right-click context menu.
 
-```bash
-# Clone the repository
-git clone https://github.com/bytechain/vscode-colaview.git
-cd vscode-colaview
+Switch via command palette or settings:
 
-# Install dependencies
-npm install
-
-# Compile the extension
-npm run compile
-
-# Package for distribution
-npm run package
+```json
+{ "colaview.theme": "dark" }
 ```
 
-## 📖 Usage
+Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or via right-click menu → "Import Theme..."
 
-### Show Preview
-
-- **Command Palette**: Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and type `ColaView MD: Show Preview`
-- **Editor Title Bar**: Click the preview icon in the editor toolbar
-- **Right-click Context Menu**: Right-click in a Markdown file and select `Show Preview`
-- **Auto Preview**: Enable auto-preview in settings to automatically show preview when opening Markdown files
-
-### Export to PDF
-
-1. Open a Markdown file
-2. Press `Ctrl+Shift+P` / `Cmd+Shift+P`
-3. Type `ColaView MD: Export to PDF...`
-4. Choose export options (format, margins)
-5. Select save location
-
-### Export to HTML
-
-1. Open a Markdown file
-2. Press `Ctrl+Shift+P` / `Cmd+Shift+P`
-3. Type `ColaView MD: Export to HTML...`
-4. Configure export settings (embed images, include CDN)
-5. Select save location
-
-### Switch Theme
-
-- Use Command Palette: `ColaView MD: Switch Preview Theme...`
-- Or configure in Settings: `colaview.theme`
-
-## ⚙️ Configuration
+## Configuration
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `colaview.theme` | string | `light` | Visual theme (`light`, `dark`, `elegant`, `newsprint`) |
-| `colaview.plugins.math` | boolean | `true` | Enable KaTeX math formula rendering |
-| `colaview.plugins.mermaid` | boolean | `true` | Enable Mermaid diagram rendering |
-| `colaview.pdfMethod` | string | `puppeteer` | PDF export method (`puppeteer`, `webviewPrint`) |
-| `colaview.autoPreview` | boolean | `false` | Auto show preview on opening Markdown files |
-| `colaview.customThemesPath` | string | `` | Custom theme CSS directory path |
+| `colaview.theme` | `string` | `"light"` | Preview theme: `light`, `dark`, `elegant`, `newsprint`, or any custom theme name |
+| `colaview.plugins.math` | `boolean` | `true` | Enable KaTeX math rendering |
+| `colaview.plugins.mermaid` | `boolean` | `true` | Enable Mermaid diagram rendering |
+| `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF engine: `puppeteer` or `webviewPrint` |
+| `colaview.autoPreview` | `boolean` | `false` | Auto-open preview for `.md` files |
+| `colaview.customThemesPath` | `string` | `""` | Directory for custom theme CSS files |
 
-## 🎨 Supported Markdown Features
+## Supported Syntax
 
-### Basic Syntax
-- Headings (H1-H6)
-- Bold, Italic, Strikethrough
-- Inline code and code blocks with syntax highlighting
-- Links and images
-- Lists (ordered and unordered)
-- Blockquotes
+**Standard Markdown** — Headings, bold, italic, strikethrough, code blocks, links, images, lists, blockquotes
 
-### Extended Syntax (GFM)
-- Tables
-- Task lists
-- Footnotes
-- Strikethrough text
-- Superscript and subscript
-- Auto-linking URLs
+**GFM Extensions** — Tables, task lists, footnotes, autolinks
 
-### Advanced Features
-- **Math Formulas**: LaTeX math via `$...$` (inline) and `$$...$$` (display)
-- **Diagrams**: Mermaid diagram syntax for various chart types
-- **Syntax Highlighting**: Powered by highlight.js with 180+ languages
+**Math (KaTeX)**
 
-## 🏗️ Architecture
+```markdown
+Inline: $E = mc^2$
+
+Display:
+$$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
+```
+
+**Diagrams (Mermaid)**
+
+````markdown
+```mermaid
+graph LR
+    A[Markdown] --> B[ColaView]
+    B --> C[PDF]
+    B --> D[HTML]
+```
+````
+
+Supports: flowchart, sequence, class, state, ER, journey, pie, Gantt, gitGraph, mindmap, timeline, quadrant, XY, C4, Sankey, block, architecture
+
+## Architecture
+
+```
+┌─────────────┐     postMessage      ┌──────────────────┐
+│  Extension   │ ◄──────────────────► │    WebView        │
+│  (Node.js)   │                      │  (Milkdown/       │
+│              │   raw markdown ──►   │   ColaMD editor)  │
+│  ThemeManager│   theme/css ──►      │                   │
+│  Exporters   │   ◄── rendered HTML  │  Read-only WYSIWYG│
+│              │                      │  + Context Menu   │
+└─────────────┘                      └──────────────────┘
+```
+
+**Key design:** The extension sends raw Markdown to the WebView, where Milkdown (via ColaMD) renders it as a read-only WYSIWYG editor. For exports, the WebView returns the rendered HTML back to the extension. The WebView also hosts a right-click context menu for quick access to export and theme functions.
+
+### Security Model
+
+The WebView uses a strict Content-Security-Policy (CSP) with nonce-based script loading:
+
+1. Extension generates a random `nonce` value per panel creation
+2. CSP allows only scripts matching that specific `nonce`
+3. All resource URIs are resolved through `webview.asWebviewUri()` for sandbox isolation
+4. This prevents XSS injection even if markdown content contains malicious scripts
+
+### Project Structure
 
 ```
 src/
-├── extension.ts              # Extension entry point
-├── types.ts                  # Common type definitions
-├── renderer/
-│   ├── markdown-parser.ts    # Markdown-it parser configuration
-│   ├── plugin-system.ts      # Declarative plugin interface
-│   └── plugins/
-│       ├── math-plugin.ts    # KaTeX math rendering plugin
-│       └── mermaid-plugin.ts # Mermaid diagram plugin
-└── utils/
-    └── file-utils.ts         # File operation utilities
+├── extension.ts              # Entry point (activate/deactivate), error isolation
+├── commands/commands.ts      # Command registration (showPreview, exportHTML, exportPDF, etc.)
+├── preview/
+│   ├── preview-manager.ts    # WebView lifecycle, nonce CSP, message handling, debounce sync
+│   └── webview/
+│       ├── index.html        # WebView template + context menu styles
+│       └── app.ts            # Milkdown/ColaMD init + context menu logic
+├── export/
+│   ├── pdf-exporter.ts       # Puppeteer PDF generation (A4, print background)
+│   ├── html-exporter.ts      # Standalone HTML export (embedded CSS)
+│   └── css-collector.ts      # CSS variable extraction for export documents
+├── themes/
+│   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
+│   ├── foundation.css        # Base CSS variables (colors, spacing)
+│   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
+├── config/configuration.ts   # Settings defaults
+└── utils/file-utils.ts       # File I/O helpers
 ```
 
-### Plugin System
-
-The extension uses a **declarative plugin system** powered by a flexible declarative plugin interface:
-
-```typescript
-interface RenderPlugin {
-  id: string;
-  name: string;
-  enabled: boolean;
-  markdownItPlugin?: { plugin: any; options?: any };
-  postRender?: (html: string) => Promise<string>;
-  exportStyles?: string;
-  ensureRendered?: () => Promise<void>;
-  onThemeChange?: (theme: string) => void;
-}
-```
-
-This architecture allows easy extension with new plugins while maintaining clean separation of concerns.
-
-## 🔧 Development
-
-### Prerequisites
-
-- Node.js >= 18.x
-- npm >= 9.x
-- VS Code >= 1.85.0
-- TypeScript >= 5.7
-
-### Setup
+## Development
 
 ```bash
-# Install dependencies
+git clone https://github.com/bytechain/vscode-colaview.git
+cd vscode-colaview
 npm install
 
-# Start development watch mode
-npm run watch
-
-# Run tests
-npm test
-
-# Build for production
+# Build (esbuild bundles all deps into out/)
 npm run compile
 
-# Package .vsix file
+# Watch mode
+npm run watch
+
+# Package .vsix (~206KB, no node_modules needed)
 npm run package
+
+# Debug: press F5 in VS Code to launch Extension Development Host
 ```
 
-### Debugging
+### Build System
 
-Open the project in VS Code and press F5 to launch the Extension Development Host. The extension will be loaded in the new window for debugging.
+The project uses **esbuild** for bundling — all dependencies (including `@bytechain.cn/colamd`, `katex`, `mermaid`, `puppeteer`) are inlined into `out/extension.js`. Resource files (CSS, WebView HTML/JS) are copied to `out/` during build. The resulting VSIX is ~206KB with zero external dependencies.
 
-## 📦 Dependencies
+## License
 
-### Runtime Dependencies
-- [markdown-it](https://github.com/markdown-it/markdown-it) - Markdown parser
-- [highlight.js](https://highlightjs.org/) - Syntax highlighting
-- [katex](https://katex.org/) - Math formula rendering
-- [mermaid](https://mermaid.js.org/) - Diagram generation
-- [puppeteer](https://pptr.dev/) - PDF generation engine
-
-### Dev Dependencies
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [@vscode/vsce](https://github.com/microsoft/vscode-vsce) - VS Code packaging tool
-- [@vscode/test-electron](https://github.com/microsoft/vscode-test) - Testing utilities
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [markdown-it](https://github.com/markdown-it/markdown-it) - Excellent Markdown parser
-- [KaTeX](https://katex.org/) - Fast math typesetting library
-- [Mermaid](https://mermaid.js.org/) - Diagramming and charting tool
-- [highlight.js](https://highlightjs.org/) - Syntax highlighting library
-- [Puppeteer](https://pptr.dev/) - Headless Chrome automation
-
----
-
-**Made with ❤️ by [ByteChain](https://github.com/bytechain)**
-# vscode-colaview
+[MIT](LICENSE)

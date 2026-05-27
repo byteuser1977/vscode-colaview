@@ -1,216 +1,197 @@
 # ColaView MD
 
-**ColaView MD — VSCode 富文本 Markdown 预览与 PDF/HTML 导出扩展**
-
-[![VSCode](https://img.shields.io/badge/VSCode-1.85%2B-blue)](https://code.visualstudio.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+[![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](package.json)
 
-## ✨ 功能特性
+VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 
-- **富文本 Markdown 预览**：完整的 GFM（GitHub 风格 Markdown）支持，包括语法高亮、表格、任务列表、脚注等
-- **数学公式渲染**：集成 KaTeX，支持美观的数学表达式（行内和块级模式）
-- **图表支持**：Mermaid 图表，支持流程图、时序图、类图等多种类型
-- **PDF 导出**：高质量 PDF 生成，支持自定义页面格式和边距
-- **HTML 导出**：干净的 HTML 输出，可选图片嵌入和 CDN 支持
-- **多主题支持**：内置主题包括浅色、深色、优雅、新闻纸风格
-- **自定义主题**：导入和使用自己的 CSS 主题，打造个性化预览体验
-- **插件系统**：可扩展架构，采用声明式插件接口设计
+## 功能特性
 
-## 🚀 安装
+- **所见即所得预览** — 基于 Milkdown 的只读编辑器，实时渲染 Markdown 富文本
+- **数学公式** — KaTeX 集成，支持行内 `$...$` 和块级 `$$...$$` 公式
+- **Mermaid 图表** — 17+ 种图表：流程图、时序图、类图、状态图、ER 图、甘特图、思维导图等
+- **PDF 导出** — Puppeteer 无头 Chrome 生成 A4 PDF，完整保留主题样式
+- **HTML 导出** — 独立 `.html` 文件，内嵌 CSS，零依赖分享
+- **4 套内置主题** — Light、Dark、Elegant、Newsprint + 自定义 CSS 导入
+- **自定义主题目录** — 在工作区根目录 `.themes/` 文件夹中放入 `.css` 文件即可自动识别
+- **右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
+- **插件开关** — 通过设置在运行时动态启用/禁用数学公式和 Mermaid 渲染
+- **实时同步** — 编辑后 150ms 防抖更新
 
-### 从 VS Code 应用市场安装（即将上线）
+## 快速开始
 
-```bash
-# 在 VS Code 扩展市场中搜索 "ColaView MD"
-# 或通过命令行安装：
-code --install-extension bytechain.vscode-colaview
+1. 安装扩展
+2. 在 VS Code 中打开 `.md` 文件
+3. `Ctrl+Shift+P` → **"ColaView MD: Show Preview"**
+4. 侧边栏打开富文本预览
+
+## 命令与使用方式
+
+### 命令面板 (`Ctrl+Shift+P`)
+
+| 命令 | 说明 |
+|------|------|
+| `ColaView MD: Show Preview` | 打开或聚焦预览面板 |
+| `ColaView MD: Export to PDF...` | 导出为 A4 PDF |
+| `ColaView MD: Export to HTML...` | 导出为独立 HTML |
+| `ColaView MD: Switch Preview Theme...` | 切换主题：Light / Dark / Elegant / Newsprint |
+| `ColaView MD: Import Custom Theme...` | 导入 `.css` 自定义主题 |
+
+### 右键上下文菜单（预览面板内）
+
+预览面板打开后，任意位置右键可访问：
+
+| 菜单项 | 说明 |
+|--------|------|
+| **Export HTML** | 将当前预览导出为独立 HTML |
+| **Export PDF** | 将当前预览导出为 A4 PDF |
+| **Theme ▸** | 子菜单列出所有内置 + 自定义主题（✓ 标记当前激活） |
+| **Import Theme...** | 打开文件选择器导入 `.css` 文件 |
+
+## 主题
+
+### 内置主题
+
+| 主题 | 风格 | 适用场景 |
+|------|------|----------|
+| **Light** | 干净白底，蓝色调 | 通用、文档 |
+| **Dark** | GitHub Dark 配色 | 夜间编程 |
+| **Elegant** | 暖色衬线，米色基调 | 学术论文、长文 |
+| **Newsprint** | 衬线排版，印刷质感 | 打印、正式文档 |
+
+### 自定义主题
+
+在工作区根目录的 `.themes/` 目录下放置 `.css` 文件：
+
+```
+my-project/
+├── .themes/
+│   ├── my-dark.css        # 在主题菜单中显示为 "My-dark"
+│   └── corporate.css      # 在主题菜单中显示为 "Corporate"
+└── README.md
 ```
 
-### 从源码安装
+自定义主题会被自动检测，与内置主题一起出现在命令面板和右键菜单的主题列表中。
 
-```bash
-# 克隆仓库
-git clone https://github.com/bytechain/vscode-colaview.git
-cd vscode-colaview
+通过命令面板或设置切换：
 
-# 安装依赖
-npm install
-
-# 编译扩展
-npm run compile
-
-# 打包发布文件
-npm run package
+```json
+{ "colaview.theme": "dark" }
 ```
 
-## 📖 使用方法
+导入自定义 CSS：`Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." 或右键菜单 → "Import Theme..."
 
-### 显示预览
+## 配置项
 
-- **命令面板**：按 `Ctrl+Shift+P`（Mac 上为 `Cmd+Shift+P`），输入 `ColaView MD: Show Preview`
-- **编辑器标题栏**：点击工具栏中的预览图标
-- **右键菜单**：在 Markdown 文件中右键选择 `Show Preview`
-- **自动预览**：在设置中启用自动预览功能，打开 Markdown 文件时自动显示预览
+| 配置 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `colaview.theme` | `string` | `"light"` | 预览主题：`light`、`dark`、`elegant`、`newsprint` 或任意自定义主题名 |
+| `colaview.plugins.math` | `boolean` | `true` | 启用 KaTeX 数学公式渲染 |
+| `colaview.plugins.mermaid` | `boolean` | `true` | 启用 Mermaid 图表渲染 |
+| `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF 引擎：`puppeteer` 或 `webviewPrint` |
+| `colaview.autoPreview` | `boolean` | `false` | 打开 `.md` 文件时自动显示预览 |
+| `colaview.customThemesPath` | `string` | `""` | 自定义主题 CSS 目录路径 |
 
-### 导出为 PDF
+## 支持的语法
 
-1. 打开一个 Markdown 文件
-2. 按 `Ctrl+Shift+P` / `Cmd+Shift+P`
-3. 输入 `ColaView MD: Export to PDF...`
-4. 选择导出选项（格式、边距等）
-5. 选择保存位置
+**标准 Markdown** — 标题、粗体、斜体、删除线、代码块、链接、图片、列表、引用
 
-### 导出为 HTML
+**GFM 扩展** — 表格、任务列表、脚注、自动链接
 
-1. 打开一个 Markdown 文件
-2. 按 `Ctrl+Shift+P` / `Cmd+Shift+P`
-3. 输入 `ColaView MD: Export to HTML...`
-4. 配置导出设置（嵌入图片、包含 CDN 等）
-5. 选择保存位置
+**数学公式（KaTeX）**
 
-### 切换主题
+```markdown
+行内：$E = mc^2$
 
-- 使用命令面板：`ColaView MD: Switch Preview Theme...`
-- 或在设置中配置：`colaview.theme`
+块级：
+$$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
+```
 
-## ⚙️ 配置项
+**图表（Mermaid）**
 
-| 配置项 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `colaview.theme` | string | `light` | 视觉主题（`light`, `dark`, `elegant`, `newsprint`） |
-| `colaview.plugins.math` | boolean | `true` | 启用 KaTeX 数学公式渲染 |
-| `colaview.plugins.mermaid` | boolean | `true` | 启用 Mermaid 图表渲染 |
-| `colaview.pdfMethod` | string | `puppeteer` | PDF 导出方式（`puppeteer`, `webviewPrint`） |
-| `colaview.autoPreview` | boolean | `false` | 打开 Markdown 文件时自动显示预览 |
-| `colaview.customThemesPath` | string | `` | 自定义主题 CSS 目录路径 |
+````markdown
+```mermaid
+graph LR
+    A[Markdown] --> B[ColaView]
+    B --> C[PDF]
+    B --> D[HTML]
+```
+````
 
-## 🎨 支持的 Markdown 语法
+支持：流程图、时序图、类图、状态图、ER 图、用户旅程、饼图、甘特图、Git 图、思维导图、时间线、四象限图、XY 图、C4 架构图、Sankey 图、Block 图、架构图
 
-### 基础语法
-- 标题（H1-H6）
-- 粗体、斜体、删除线
-- 行内代码和带语法高亮的代码块
-- 链接和图片
-- 有序和无序列表
-- 引用块
+## 技术架构
 
-### 扩展语法（GFM）
-- 表格
-- 任务列表
-- 脚注
-- 删除线文本
-- 上标和下标
-- URL 自动链接
+```
+┌─────────────┐     postMessage      ┌──────────────────┐
+│  Extension   │ ◄──────────────────► │    WebView        │
+│  (Node.js)   │                      │  (Milkdown/       │
+│              │   raw markdown ──►   │   ColaMD editor)  │
+│  ThemeManager│   theme/css ──►      │                   │
+│  Exporters   │   ◄── rendered HTML  │  只读 WYSIWYG     │
+│              │                      │  + 右键上下文菜单  │
+└─────────────┘                      └──────────────────┘
+```
 
-### 高级特性
-- **数学公式**：通过 `$...$`（行内）和 `$$...$$`（块级）使用 LaTeX 数学语法
-- **图表**：使用 Mermaid 图表语法创建各种类型的图表
-- **语法高亮**：由 highlight.js 提供支持，覆盖 180+ 种编程语言
+**核心设计：** 扩展端将原始 Markdown 发送到 WebView，由 Milkdown（通过 ColaMD）渲染为只读所见即所得编辑器。导出时，WebView 将渲染后的 HTML 返回给扩展端。WebView 同时承载右键上下文菜单，提供快捷的导出和主题操作入口。
 
-## 🏗️ 项目结构
+### 安全模型
+
+WebView 采用严格的内容安全策略（CSP），配合 nonce 机制加载脚本：
+
+1. 扩展每次创建面板时生成随机 `nonce` 值
+2. CSP 仅允许匹配该特定 `nonce` 的脚本执行
+3. 所有资源 URI 通过 `webview.asWebviewUri()` 解析，实现沙箱隔离
+4. 即使 Markdown 内容包含恶意脚本也能防止 XSS 注入
+
+### 项目结构
 
 ```
 src/
-├── extension.ts              # 扩展入口文件
-├── types.ts                  # 公共类型定义
-├── renderer/
-│   ├── markdown-parser.ts    # Markdown-it 解析器配置
-│   ├── plugin-system.ts      # 声明式插件系统
-│   └── plugins/
-│       ├── math-plugin.ts    # KaTeX 数学渲染插件
-│       └── mermaid-plugin.ts # Mermaid 图表插件
-└── utils/
-    └── file-utils.ts         # 文件操作工具函数
+├── extension.ts              # 入口（activate/deactivate），错误隔离
+├── commands/commands.ts      # 命令注册（showPreview, exportHTML, exportPDF 等）
+├── preview/
+│   ├── preview-manager.ts    # WebView 生命周期、nonce CSP、消息处理、防抖同步
+│   └── webview/
+│       ├── index.html        # WebView 模板 + 右键菜单样式
+│       └── app.ts            # Milkdown/ColaMD 初始化 + 右键菜单逻辑
+├── export/
+│   ├── pdf-exporter.ts       # Puppeteer PDF 生成（A4、保留背景）
+│   ├── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
+│   └── css-collector.ts      # CSS 变量提取（用于导出文档）
+├── themes/
+│   ├── theme-manager.ts      # 主题加载、切换、.themes/ 目录扫描、导入
+│   ├── foundation.css        # 基础 CSS 变量层（颜色、间距）
+│   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
+├── config/configuration.ts   # 设置默认值
+└── utils/file-utils.ts       # 文件 I/O 工具
 ```
 
-### 插件系统
-
-本扩展采用了灵活的**声明式插件系统**：
-
-```typescript
-interface RenderPlugin {
-  id: string;
-  name: string;
-  enabled: boolean;
-  markdownItPlugin?: { plugin: any; options?: any };
-  postRender?: (html: string) => Promise<string>;
-  exportStyles?: string;
-  ensureRendered?: () => Promise<void>;
-  onThemeChange?: (theme: string) => void;
-}
-```
-
-这种架构允许轻松添加新插件，同时保持清晰的关注点分离。
-
-## 🔧 开发指南
-
-### 环境要求
-
-- Node.js >= 18.x
-- npm >= 9.x
-- VS Code >= 1.85.0
-- TypeScript >= 5.7
-
-### 环境搭建
+## 开发
 
 ```bash
-# 安装依赖
+git clone https://github.com/bytechain/vscode-colaview.git
+cd vscode-colaview
 npm install
 
-# 启动开发监听模式
-npm run watch
-
-# 运行测试
-npm test
-
-# 生产环境构建
+# 构建（esbuild 将所有依赖打包到 out/）
 npm run compile
 
-# 打包 .vsix 文件
+# 监听模式
+npm run watch
+
+# 打包 .vsix（约 206KB，无需 node_modules）
 npm run package
+
+# 调试：在 VS Code 中按 F5 启动扩展开发宿主
 ```
 
-### 调试方法
+### 构建系统
 
-在 VS Code 中打开本项目，按 F5 启动**扩展开发宿主**。扩展将在新窗口中加载，可用于调试。
+项目使用 **esbuild** 打包 — 所有依赖（包括 `@bytechain.cn/colamd`、`katex`、`mermaid`、`puppeteer`）均内联到 `out/extension.js`。构建时自动复制资源文件（CSS、WebView HTML/JS）到 `out/` 目录。最终 VSIX 约 206KB，零外部依赖。
 
-## 📦 技术依赖
+## 许可证
 
-### 运行时依赖
-- [markdown-it](https://github.com/markdown-it/markdown-it) - Markdown 解析器
-- [highlight.js](https://highlightjs.org/) - 语法高亮
-- [katex](https://katex.org/) - 数学公式渲染
-- [mermaid](https://mermaid.js.org/) - 图表生成
-- [puppeteer](https://pptr.dev/) - PDF 生成引擎
-
-### 开发依赖
-- [TypeScript](https://www.typescriptlang.org/) - 类型安全
-- [@vscode/vsce](https://github.com/microsoft/vscode-vsce) - VS Code 打包工具
-- [@vscode/test-electron](https://github.com/microsoft/vscode-test) - 测试工具
-
-## 🤝 贡献指南
-
-欢迎贡献！请随时提交 Issue 和 Pull Request。
-
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
-
-## 📄 许可证
-
-本项目基于 MIT 许可证开源 - 详见 [LICENSE](LICENSE) 文件。
-
-## 🙏 致谢
-
-- [markdown-it](https://github.com/markdown-it/markdown-it) - 优秀的 Markdown 解析器
-- [KaTeX](https://katex.org/) - 快速的数学排版库
-- [Mermaid](https://mermaid.js.org/) - 强大的图表绘制工具
-- [highlight.js](https://highlightjs.org/) - 语法高亮库
-- [Puppeteer](https://pptr.dev/) - 无头 Chrome 自动化工具
-
----
-
-**由 [ByteChain](https://github.com/bytechain) 用 ❤️ 制作**
+[MIT](LICENSE)
