@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src file: data:;">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.46/dist/katex.min.css">
+    <base href="" id="base-tag">
+    <style id="theme-style"></style>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .colamd-preview-content {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 20px 40px 40px;
+            min-height: 100vh;
+            word-wrap: break-word;
+        }
+        .colamd-preview-content > :first-child { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div id="preview-root">
+        <div class="colamd-preview-content" id="preview-content"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

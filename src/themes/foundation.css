@@ -1,0 +1,103 @@
+/*
+ * ColaMD 主题系统：Foundation (基础层)
+ * 职责：全局 CSS 变量定义 + Mermaid 变量抽象 + 排版/颜色/间距语义化
+ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+:root {
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --font-family-heading: var(--font-family-base);
+  --font-family-code: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
+  --font-family-math: var(--font-family-base);
+  --font-size-root: 16px;
+  --line-height-base: 1.75;
+  --font-weight-bold: 600;
+
+  --color-bg: #ffffff;
+  --color-text: #24292f;
+  --color-text-muted: #656d76;
+  --color-border: #d0d7de;
+  --color-link: #0969da;
+  --color-accent: #6366f1;
+  --color-accent-dark: #4f46e5;
+  --color-accent-light: #eef2ff;
+  --color-selection-bg: rgba(9, 105, 218, 0.15);
+
+  --code-bg: rgba(175, 184, 193, 0.2);
+  --code-color: var(--color-accent);
+  --code-block-bg: #f6f8fa;
+  --code-block-text: var(--color-text);
+  --code-block-color: var(--code-block-text);
+
+  --blockquote-bg: transparent;
+  --blockquote-border: var(--color-border);
+  --blockquote-color: var(--color-text-muted);
+
+  --table-header-bg: #f6f8fa;
+  --table-border: var(--color-border);
+  --table-stripe: rgba(0, 0, 0, 0.03);
+
+  --hr-color: var(--color-border);
+  --scrollbar-width: 6px;
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-thumb-hover: #9ca3af;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+
+  --mermaid-background: var(--code-block-bg);
+  --mermaid-border-color: var(--color-border);
+  --mermaid-border-radius: var(--radius-md);
+  --mermaid-padding: 20px;
+
+  --mermaid-font-family: var(--font-family-base);
+  --mermaid-font-size: 14px;
+
+  --mermaid-node-stroke: var(--color-border);
+  --mermaid-node-fill: var(--code-bg);
+  --mermaid-node-text: var(--color-text);
+  --mermaid-node-stroke-width: 1.5px;
+
+  --mermaid-edge-stroke: var(--color-border);
+  --mermaid-edge-stroke-width: 1.5px;
+
+  --mermaid-cluster-stroke: var(--color-accent);
+  --mermaid-cluster-fill: rgba(99, 102, 241, 0.06);
+
+  --mermaid-label-text: var(--color-text);
+  --mermaid-label-bg: var(--mermaid-background);
+  --mermaid-edge-label-bg: var(--mermaid-background);
+  --mermaid-edge-label-text: var(--color-text-muted);
+  --mermaid-title-text: var(--color-text);
+  --mermaid-axis-text: var(--color-text-muted);
+
+  --mermaid-highlight: var(--color-accent);
+  --mermaid-person-stroke: var(--color-text);
+  --mermaid-person-fill: var(--mermaid-node-fill);
+
+  --mermaid-cscale0: #6366f1;
+  --mermaid-cscale1: #ec4899;
+  --mermaid-cscale2: #06b6d4;
+  --mermaid-cscale3: #10b981;
+  --mermaid-cscale4: #f59e0b;
+  --mermaid-cscale5: #f43f5e;
+  --mermaid-cscale6: #3b82f6;
+  --mermaid-cscale7: #8b5cf6;
+  --mermaid-cscale8: #14b8a6;
+  --mermaid-cscale9: #eab308;
+  --mermaid-cscale10: #84cc16;
+  --mermaid-cscale11: #f97316;
+  --mermaid-label-offset-y: -3px;
+}

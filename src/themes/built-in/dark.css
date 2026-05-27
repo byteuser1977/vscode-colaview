@@ -1,0 +1,22 @@
+/*
+ * ColaMD 主题系统：Dark 主题变量
+ */
+body.theme-dark {
+  --color-bg: #0d1117;
+  --color-text: #e6edf3;
+  --color-text-muted: #8b949e;
+  --color-border: #30363d;
+  --color-link: #58a6ff;
+  --color-accent: #58a6ff;
+  --color-accent-dark: #1f6feb;
+  --color-accent-light: rgba(88, 166, 255, 0.15);
+  --color-selection-bg: rgba(88, 166, 255, 0.2);
+  --code-bg: rgba(110, 118, 129, 0.3);
+  --code-block-bg: #161b22;
+  --code-block-text: #e6edf3;
+  --blockquote-border: #30363d;
+  --table-header-bg: #161b22;
+  --table-border: #30363d;
+  --scrollbar-thumb: #30363d;
+  --scrollbar-thumb-hover: #484f58;
+}

@@ -1,0 +1,156 @@
+{
+  "name": "vscode-colaview",
+  "displayName": "ColaView MD",
+  "version": "0.1.0",
+  "publisher": "bytechain",
+  "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onCommand:colaview.showPreview",
+    "onCommand:colaview.exportPDF",
+    "onCommand:colaview.exportHTML"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "colaview.showPreview",
+        "title": "Show Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "colaview.exportPDF",
+        "title": "Export to PDF...",
+        "icon": "$(export)"
+      },
+      {
+        "command": "colaview.exportHTML",
+        "title": "Export to HTML...",
+        "icon": "$(export)"
+      },
+      {
+        "command": "colaview.switchTheme",
+        "title": "Switch Preview Theme..."
+      },
+      {
+        "command": "colaview.importTheme",
+        "title": "Import Custom Theme..."
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "colaview.showPreview",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "colaview.showPreview",
+          "group": "1_colaview"
+        },
+        {
+          "command": "colaview.exportPDF",
+          "group": "1_colaview"
+        },
+        {
+          "command": "colaview.exportHTML",
+          "group": "1_colaview"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "colaview.exportPDF",
+          "group": "1_colaview"
+        },
+        {
+          "command": "colaview.exportHTML",
+          "group": "1_colaview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ColaView MD",
+      "properties": {
+        "colaview.theme": {
+          "type": "string",
+          "default": "light",
+          "enum": [
+            "light",
+            "dark",
+            "elegant",
+            "newsprint"
+          ],
+          "description": "Visual theme for preview and export"
+        },
+        "colaview.plugins.math": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable KaTeX math formula rendering"
+        },
+        "colaview.plugins.mermaid": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Mermaid diagram rendering"
+        },
+        "colaview.pdfMethod": {
+          "type": "string",
+          "default": "puppeteer",
+          "enum": [
+            "puppeteer",
+            "webviewPrint"
+          ],
+          "description": "PDF export method"
+        },
+        "colaview.autoPreview": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto show preview on opening Markdown"
+        },
+        "colaview.customThemesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom theme CSS directory path"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && mkdir -p out/preview/webview && cp src/preview/webview/*.html src/preview/webview/*.js out/preview/webview/ 2>/dev/null; true",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "highlight.js": "^11.10.0",
+    "katex": "^0.16.46",
+    "markdown-it": "^14.1.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-katex": "^2.0.3",
+    "markdown-it-mark": "^4.0.0",
+    "markdown-it-mermaid": "^0.2.5",
+    "markdown-it-sub": "^2.0.0",
+    "markdown-it-sup": "^2.0.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "mermaid": "^11.15.0",
+    "puppeteer": "^23.0.0"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "@types/markdown-it": "^14.1.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.4.0",
+    "@vscode/vsce": "^3.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.7.0"
+  }
+}

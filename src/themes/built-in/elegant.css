@@ -1,0 +1,30 @@
+/*
+ * ColaMD 主题系统：Elegant 主题变量 (典雅暖调)
+ */
+body.theme-elegant {
+  --color-bg: #f0edea;
+  --color-text: #2c2c2c;
+  --color-text-muted: #777;
+  --color-border: #d8d3ce;
+  --color-link: #c44b2b;
+  --color-accent: #c44b2b;
+  --color-accent-dark: #a33d22;
+  --color-accent-light: #d8d3ce;
+  --color-selection-bg: rgba(196, 75, 43, 0.2);
+  --code-bg: #e8e4df;
+  --code-color: #c44b2b;
+  --code-block-bg: #2c2c2c;
+  --code-block-text: #e0dcd7;
+  --blockquote-bg: #eae6e1;
+  --blockquote-border: #c44b2b;
+  --blockquote-color: #444;
+  --table-header-bg: #eae6e1;
+  --table-border: #d8d3ce;
+  --scrollbar-thumb: #ccc8c2;
+  --scrollbar-thumb-hover: #b5b0aa;
+  --hr-color: #d8d3ce;
+
+  --font-family-base: "LXGW WenKai", "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, "Times New Roman", serif;
+  --font-family-heading: var(--font-family-base);
+  --line-height-base: 1.9;
+}

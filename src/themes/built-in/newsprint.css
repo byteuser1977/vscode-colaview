@@ -1,0 +1,25 @@
+/*
+ * ColaMD 主题系统：Newsprint 主题变量 (报纸打印风格)
+ */
+body.theme-newsprint {
+  --color-bg: #f5f2eb;
+  --color-text: #1a1a1a;
+  --color-text-muted: #666;
+  --color-border: #d4d0c8;
+  --color-link: #2c5f8a;
+  --color-accent: #2c5f8a;
+  --color-accent-dark: #1e4060;
+  --color-accent-light: rgba(44, 95, 138, 0.12);
+  --color-selection-bg: rgba(44, 95, 138, 0.15);
+  --code-bg: rgba(0, 0, 0, 0.05);
+  --code-block-bg: #eae6de;
+  --blockquote-border: #999;
+  --table-header-bg: #eae6de;
+  --table-border: #d4d0c8;
+  --hr-color: #d4d0c8;
+  --scrollbar-thumb: #ccc8c2;
+  --scrollbar-thumb-hover: #b5b0aa;
+
+  --font-family-base: "PT Serif", Georgia, "Times New Roman", "Songti SC", serif;
+  --font-family-heading: var(--font-family-base);
+}

@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+out/
+dist/
+
+# VS Code Extension Packaging
+.vscode-test/
+*.vsix
+
+# Test coverage
+coverage/
+.nyc_output/
+.nyc-cache/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific (partial)
+.vscode/argv.json
+.vscode/workspace.xml
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+.tmp/
+temp/
+.temp/
+
+# AI/agent related (optional)
+.claude/
+.trae/
+
+# Misc
+*.swp
+*~
