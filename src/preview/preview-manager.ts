@@ -87,6 +87,9 @@ export class PreviewManager {
                             theme,
                         });
                         this.pendingDocument = null;
+                        // 预推送主题列表，避免首次右键菜单为空
+                        const list = ThemeManager.getThemeList();
+                        this.panel?.webview.postMessage({ type: 'themeList', ...list });
                         break;
                     }
                     case 'exportHTMLResult': {
@@ -144,18 +147,18 @@ export class PreviewManager {
      * 处理导出 HTML 请求
      */
     private async handleExportHTML(): Promise<void> {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'markdown') {
-            vscode.window.showWarningMessage('Open a Markdown file first');
+        if (!this.currentUri) {
+            vscode.window.showWarningMessage('No Markdown file is open');
             return;
         }
         try {
+            const document = await vscode.workspace.openTextDocument(this.currentUri);
             const renderedHTML = await this.getExportHTML();
             if (!renderedHTML) {
                 vscode.window.showWarningMessage('Could not get rendered HTML from preview');
                 return;
             }
-            await exportHTML(this.context, editor.document, renderedHTML);
+            await exportHTML(this.context, document, renderedHTML);
         } catch (e) {
             vscode.window.showErrorMessage(`HTML export failed: ${e instanceof Error ? e.message : String(e)}`);
         }
@@ -165,18 +168,18 @@ export class PreviewManager {
      * 处理导出 PDF 请求
      */
     private async handleExportPDF(): Promise<void> {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'markdown') {
-            vscode.window.showWarningMessage('Open a Markdown file first');
+        if (!this.currentUri) {
+            vscode.window.showWarningMessage('No Markdown file is open');
             return;
         }
         try {
+            const document = await vscode.workspace.openTextDocument(this.currentUri);
             const renderedHTML = await this.getExportHTML();
             if (!renderedHTML) {
                 vscode.window.showWarningMessage('Could not get rendered HTML from preview');
                 return;
             }
-            await exportPDF(editor.document, renderedHTML);
+            await exportPDF(this.context, document, renderedHTML);
         } catch (e) {
             vscode.window.showErrorMessage(`PDF export failed: ${e instanceof Error ? e.message : String(e)}`);
         }
@@ -187,7 +190,18 @@ export class PreviewManager {
      */
     private async handleSwitchTheme(name: string): Promise<void> {
         await ThemeManager.switchTheme(name);
+        // 自定义主题需要额外发送 CSS（内置主题由 applyTheme 处理）
+        const builtins = ThemeManager.getBuiltinThemes();
+        if (!builtins.includes(name)) {
+            const css = ThemeManager.loadThemeCSS(name);
+            if (css) {
+                this.sendCustomThemeCSS(name, css);
+            }
+        }
         this.sendTheme(name);
+        // 推送更新后的主题列表（current 已变化）
+        const list = ThemeManager.getThemeList();
+        this.panel?.webview.postMessage({ type: 'themeList', ...list });
     }
 
     /**

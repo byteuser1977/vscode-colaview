@@ -148,6 +148,7 @@ function buildThemeSubmenu(): HTMLElement {
         item.textContent = name.charAt(0).toUpperCase() + name.slice(1);
         item.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (themeListData) themeListData.current = name;
             closeMenu();
             vscode.postMessage({ type: 'switchTheme', name });
         });
@@ -166,6 +167,7 @@ function buildThemeSubmenu(): HTMLElement {
             item.textContent = name;
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (themeListData) themeListData.current = name;
                 closeMenu();
                 vscode.postMessage({ type: 'switchTheme', name });
             });
