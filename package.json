@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bytechain/vscode-colaview.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
