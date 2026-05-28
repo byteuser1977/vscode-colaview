@@ -1,5 +1,6 @@
 /*
  * ColaMD 主题系统：Newsprint 主题变量 (报纸打印风格)
+ * 依赖：foundation.css
  */
 body.theme-newsprint {
   --color-bg: #f5f2eb;
@@ -20,6 +21,7 @@ body.theme-newsprint {
   --scrollbar-thumb: #ccc8c2;
   --scrollbar-thumb-hover: #b5b0aa;
 
+  /* Newsprint 字体：衬线 */
   --font-family-base: "PT Serif", Georgia, "Times New Roman", "Songti SC", serif;
   --font-family-heading: var(--font-family-base);
 }

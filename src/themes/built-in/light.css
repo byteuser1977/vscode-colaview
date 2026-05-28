@@ -1,5 +1,7 @@
 /*
  * ColaMD 主题系统：Light 主题变量
+ * 依赖：foundation.css
+ * 仅包含变量覆盖，无样式选择器
  */
 body.theme-light, body:not([class*="theme-"]) {
   --color-bg: #ffffff;
@@ -15,4 +17,5 @@ body.theme-light, body:not([class*="theme-"]) {
   --code-block-bg: #f6f8fa;
   --blockquote-border: #d0d7de;
   --table-header-bg: #f6f8fa;
+  --table-border: #d0d7de;
 }
