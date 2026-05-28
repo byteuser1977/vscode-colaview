@@ -13,8 +13,10 @@ body.theme-light, body:not([class*="theme-"]) {
   --color-accent-dark: #0550ae;
   --color-accent-light: #ddf4ff;
   --color-selection-bg: rgba(9, 105, 218, 0.15);
-  --code-bg: rgba(175, 184, 193, 0.2);
+  --code-bg: #ffffff;
+  --code-color: var(--color-accent);
   --code-block-bg: #f6f8fa;
+  --code-block-text: var(--color-text);
   --blockquote-border: #d0d7de;
   --table-header-bg: #f6f8fa;
   --table-border: #d0d7de;

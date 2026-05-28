@@ -12,8 +12,10 @@ body.theme-newsprint {
   --color-accent-dark: #1e4060;
   --color-accent-light: rgba(44, 95, 138, 0.12);
   --color-selection-bg: rgba(44, 95, 138, 0.15);
-  --code-bg: rgba(0, 0, 0, 0.05);
+  --code-bg: #f5f2eb;
+  --code-color: var(--color-text);
   --code-block-bg: #eae6de;
+  --code-block-text: var(--color-text);
   --blockquote-border: #999;
   --table-header-bg: #eae6de;
   --table-border: #d4d0c8;

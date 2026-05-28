@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.1-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
@@ -191,6 +191,19 @@ npm run package
 ### Build System
 
 The project uses **esbuild** for bundling — all dependencies (including `@bytechain.cn/colamd`, `katex`, `mermaid`, `puppeteer`) are inlined into `out/extension.js`. Resource files (CSS, WebView HTML/JS) are copied to `out/` during build. The resulting VSIX is ~206KB with zero external dependencies.
+
+## Changelog
+
+### v0.1.1
+
+- **🎨 Theme Consistency Fix** — Unified `--code-color` and `--code-block-text` CSS variables across all 4 built-in themes (Light, Dark, Elegant, Newsprint), eliminating inconsistent inline code / code block text colors
+- **📰 Newsprint Theme Alignment** — Fully aligned Newsprint theme variables with [ColaMD-extend](https://github.com/byteuser1977/ColaMD-extend) base.css, including font family (PT Serif serif stack), code color inheritance, and all semantic color tokens
+- **🔧 Light Theme Completion** — Added missing `--table-border` variable to Light theme for consistent table styling
+- **📦 Dependency Migration** — Switched from local ColaMD project reference to npm package `@bytechain.cn/colamd` (^1.5.2)
+
+### v0.1.0
+
+- Initial release with WYSIWYG preview, PDF/HTML export, 4 built-in themes, custom theme support
 
 ## License
 

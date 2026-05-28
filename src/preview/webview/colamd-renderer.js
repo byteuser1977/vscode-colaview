@@ -76218,18 +76218,18 @@ async function createColaMDEditor(options2) {
     buildExportHTML() {
       const bodyStyle = getComputedStyle(document.body);
       const v3 = (name) => bodyStyle.getPropertyValue(name).trim();
-      const bgColor = v3("--bg-color");
-      const textColor = v3("--text-color");
-      const textMuted = v3("--text-muted");
-      const borderColor = v3("--border-color");
-      const linkColor = v3("--link-color");
+      const bgColor = v3("--color-bg") || v3("--bg-color");
+      const textColor = v3("--color-text") || v3("--text-color");
+      const textMuted = v3("--color-text-muted") || v3("--text-muted");
+      const borderColor = v3("--color-border") || v3("--border-color");
+      const linkColor = v3("--color-link") || v3("--link-color");
       const codeBg = v3("--code-bg");
       const codeBlockBg = v3("--code-block-bg");
       const codeBlockText = v3("--code-block-text") || textColor;
       const blockquoteBorder = v3("--blockquote-border");
       const blockquoteBg = v3("--blockquote-bg") || "transparent";
       const tableHeaderBg = v3("--table-header-bg");
-      const selectionBg = v3("--selection-bg");
+      const selectionBg = v3("--color-selection-bg") || v3("--selection-bg");
       const editorEl = root3.querySelector(".ProseMirror");
       const editorStyle = editorEl ? getComputedStyle(editorEl) : bodyStyle;
       const fontFamily = editorStyle.fontFamily || "-apple-system,BlinkMacSystemFont,sans-serif";
@@ -76250,35 +76250,50 @@ async function createColaMDEditor(options2) {
       const strongColor = getElColor("strong", textColor);
       const codeColor = getElColor("code", textColor);
       const varNames = [
-        "--bg-color",
-        "--text-color",
-        "--text-muted",
-        "--text-dim",
-        "--border-color",
-        "--link-color",
-        "--accent-color",
-        "--selection-bg",
+        "--color-bg",
+        "--color-text",
+        "--color-text-muted",
+        "--color-text-dim",
+        "--color-border",
+        "--color-link",
+        "--color-accent",
+        "--color-accent-dark",
+        "--color-accent-light",
+        "--color-selection-bg",
         "--code-bg",
         "--code-color",
         "--code-block-bg",
         "--code-block-text",
         "--blockquote-bg",
         "--blockquote-border",
+        "--blockquote-color",
         "--table-header-bg",
+        "--table-border",
+        "--hr-color",
+        "--scrollbar-thumb",
+        "--scrollbar-thumb-hover",
+        "--radius-sm",
+        "--radius-md",
+        "--radius-lg",
         "--mermaid-background",
         "--mermaid-border-color",
         "--mermaid-node-fill",
         "--mermaid-node-stroke",
         "--mermaid-node-text",
         "--mermaid-edge-stroke",
+        "--mermaid-edge-stroke-width",
         "--mermaid-cluster-fill",
         "--mermaid-cluster-stroke",
         "--mermaid-label-text",
+        "--mermaid-edge-label-text",
+        "--mermaid-edge-label-bg",
+        "--mermaid-title-text",
+        "--mermaid-axis-text",
+        "--mermaid-highlight",
+        "--mermaid-person-stroke",
+        "--mermaid-person-fill",
         "--mermaid-font-family",
-        "--mermaid-font-size",
-        "--radius-sm",
-        "--radius-md",
-        "--radius-lg"
+        "--mermaid-font-size"
       ];
       const cssVarLines = varNames.map((n2) => {
         const val = v3(n2);

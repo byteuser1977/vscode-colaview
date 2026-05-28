@@ -83,12 +83,15 @@ export class PreviewManager {
                         const builtins = ThemeManager.getBuiltinThemes();
                         const isCustom = !builtins.includes(theme);
                         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
+                        // 始终发送 foundation + 主题 CSS，覆盖 colamd.css 中的旧变量值
+                        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
                         console.log('[ColaView] Sending init: theme=', theme, 'isCustom=', isCustom, 'markdownLen=', markdown.length);
                         this.panel?.webview.postMessage({
                             type: 'init',
                             markdown,
                             theme,
                             customCSS,
+                            themeCSS,
                         });
                         this.pendingDocument = null;
                         // 预推送主题列表，避免首次右键菜单为空
@@ -197,9 +200,8 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(name);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
-        // 自定义主题通过 customCSS 字段传递，webview 端用 'custom:' + name 调用 applyTheme
-        this.panel?.webview.postMessage({ type: 'updateTheme', theme: name, customCSS });
-        // 推送更新后的主题列表（current 已变化）
+        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(name);
+        this.panel?.webview.postMessage({ type: 'updateTheme', theme: name, customCSS, themeCSS });
         const list = ThemeManager.getThemeList();
         this.panel?.webview.postMessage({ type: 'themeList', ...list });
     }
@@ -215,12 +217,14 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(theme);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
+        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
 
         this.panel.webview.postMessage({
             type: 'update',
             markdown,
             theme,
             customCSS,
+            themeCSS,
         });
     }
 
@@ -259,7 +263,8 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(name);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
-        this.panel.webview.postMessage({ type: 'updateTheme', theme: name, customCSS });
+        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(name);
+        this.panel.webview.postMessage({ type: 'updateTheme', theme: name, customCSS, themeCSS });
         const list = ThemeManager.getThemeList();
         this.panel.webview.postMessage({ type: 'themeList', ...list });
     }

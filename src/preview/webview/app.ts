@@ -13,6 +13,18 @@ let currentMarkdown = '';
 let currentTheme = 'light';
 let themeListData: { builtins: string[]; customs: string[]; current: string } | null = null;
 
+/** 注入扩展端的主题 CSS（foundation + theme），覆盖 colamd.css 中的旧变量值 */
+function injectThemeCSS(css: string | undefined): void {
+    if (!css) return;
+    let el = document.getElementById('colaview-theme-css');
+    if (!el) {
+        el = document.createElement('style');
+        el.id = 'colaview-theme-css';
+        document.head.appendChild(el);
+    }
+    el.textContent = css;
+}
+
 // ── Message handler ──
 window.addEventListener('message', async (event: MessageEvent) => {
     const data = event.data;
@@ -20,6 +32,8 @@ window.addEventListener('message', async (event: MessageEvent) => {
         case 'init': {
             try {
                 currentTheme = data.theme || 'light';
+                // 注入扩展端主题 CSS（覆盖 colamd.css 旧变量）
+                injectThemeCSS(data.themeCSS);
                 handle = await createColaMDEditor({
                     rootId: 'editor',
                     theme: currentTheme,
@@ -47,6 +61,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 currentMarkdown = data.markdown;
             }
             if (data.theme) {
+                injectThemeCSS(data.themeCSS);
                 if (data.customCSS) {
                     handle.applyTheme('custom:' + data.theme, data.customCSS);
                 } else {
@@ -68,6 +83,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
         }
         case 'updateTheme': {
             if (!handle || !data.theme) return;
+            injectThemeCSS(data.themeCSS);
             if (data.customCSS) {
                 handle.applyTheme('custom:' + data.theme, data.customCSS);
             } else {
