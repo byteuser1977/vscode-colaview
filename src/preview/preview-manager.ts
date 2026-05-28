@@ -80,11 +80,15 @@ export class PreviewManager {
                     case 'ready': {
                         const theme = ThemeManager.getCurrentTheme();
                         const markdown = this.pendingDocument?.getText() || '';
-                        console.log('[ColaView] Sending init: theme=', theme, 'markdownLen=', markdown.length);
+                        const builtins = ThemeManager.getBuiltinThemes();
+                        const isCustom = !builtins.includes(theme);
+                        const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
+                        console.log('[ColaView] Sending init: theme=', theme, 'isCustom=', isCustom, 'markdownLen=', markdown.length);
                         this.panel?.webview.postMessage({
                             type: 'init',
                             markdown,
                             theme,
+                            customCSS,
                         });
                         this.pendingDocument = null;
                         // 预推送主题列表，避免首次右键菜单为空
@@ -153,12 +157,12 @@ export class PreviewManager {
         }
         try {
             const document = await vscode.workspace.openTextDocument(this.currentUri);
-            const renderedHTML = await this.getExportHTML();
-            if (!renderedHTML) {
+            const fullHTML = await this.getExportHTML();
+            if (!fullHTML) {
                 vscode.window.showWarningMessage('Could not get rendered HTML from preview');
                 return;
             }
-            await exportHTML(this.context, document, renderedHTML);
+            await exportHTML(document, fullHTML);
         } catch (e) {
             vscode.window.showErrorMessage(`HTML export failed: ${e instanceof Error ? e.message : String(e)}`);
         }
@@ -174,12 +178,12 @@ export class PreviewManager {
         }
         try {
             const document = await vscode.workspace.openTextDocument(this.currentUri);
-            const renderedHTML = await this.getExportHTML();
-            if (!renderedHTML) {
+            const fullHTML = await this.getExportHTML();
+            if (!fullHTML) {
                 vscode.window.showWarningMessage('Could not get rendered HTML from preview');
                 return;
             }
-            await exportPDF(this.context, document, renderedHTML);
+            await exportPDF(document, fullHTML);
         } catch (e) {
             vscode.window.showErrorMessage(`PDF export failed: ${e instanceof Error ? e.message : String(e)}`);
         }
@@ -190,15 +194,11 @@ export class PreviewManager {
      */
     private async handleSwitchTheme(name: string): Promise<void> {
         await ThemeManager.switchTheme(name);
-        // 自定义主题需要额外发送 CSS（内置主题由 applyTheme 处理）
         const builtins = ThemeManager.getBuiltinThemes();
-        if (!builtins.includes(name)) {
-            const css = ThemeManager.loadThemeCSS(name);
-            if (css) {
-                this.sendCustomThemeCSS(name, css);
-            }
-        }
-        this.sendTheme(name);
+        const isCustom = !builtins.includes(name);
+        const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
+        // 自定义主题通过 customCSS 字段传递，webview 端用 'custom:' + name 调用 applyTheme
+        this.panel?.webview.postMessage({ type: 'updateTheme', theme: name, customCSS });
         // 推送更新后的主题列表（current 已变化）
         const list = ThemeManager.getThemeList();
         this.panel?.webview.postMessage({ type: 'themeList', ...list });
@@ -212,11 +212,15 @@ export class PreviewManager {
 
         const markdown = document.getText();
         const theme = ThemeManager.getCurrentTheme();
+        const builtins = ThemeManager.getBuiltinThemes();
+        const isCustom = !builtins.includes(theme);
+        const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
 
         this.panel.webview.postMessage({
             type: 'update',
             markdown,
             theme,
+            customCSS,
         });
     }
 
@@ -240,7 +244,7 @@ export class PreviewManager {
     }
 
     /**
-     * 向 WebView 发送主题切换消息
+     * 向 WebView 发送主题切换消息（内置主题）
      */
     sendTheme(theme: string): void {
         if (!this.panel) return;
@@ -248,11 +252,25 @@ export class PreviewManager {
     }
 
     /**
-     * 向 WebView 发送自定义主题 CSS
+     * 从命令面板切换主题（支持自定义主题）
      */
-    sendCustomThemeCSS(name: string, css: string): void {
+    switchThemeFromCommand(name: string): void {
         if (!this.panel) return;
-        this.panel.webview.postMessage({ type: 'applyCustomTheme', name, css });
+        const builtins = ThemeManager.getBuiltinThemes();
+        const isCustom = !builtins.includes(name);
+        const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
+        this.panel.webview.postMessage({ type: 'updateTheme', theme: name, customCSS });
+        const list = ThemeManager.getThemeList();
+        this.panel.webview.postMessage({ type: 'themeList', ...list });
+    }
+
+    /**
+     * 刷新主题列表（导入主题后调用）
+     */
+    refreshThemeList(): void {
+        if (!this.panel) return;
+        const list = ThemeManager.getThemeList();
+        this.panel.webview.postMessage({ type: 'themeList', ...list });
     }
 
     /**

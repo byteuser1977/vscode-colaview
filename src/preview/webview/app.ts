@@ -26,6 +26,10 @@ window.addEventListener('message', async (event: MessageEvent) => {
                     editable: false,
                     onChange: (md: string) => { currentMarkdown = md; },
                 });
+                // 自定义主题需要 custom: 前缀 + CSS
+                if (data.customCSS && data.theme) {
+                    handle.applyTheme('custom:' + data.theme, data.customCSS);
+                }
                 if (data.markdown) {
                     handle.setMarkdown(data.markdown);
                     currentMarkdown = data.markdown;
@@ -43,7 +47,11 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 currentMarkdown = data.markdown;
             }
             if (data.theme) {
-                handle.applyTheme(data.theme);
+                if (data.customCSS) {
+                    handle.applyTheme('custom:' + data.theme, data.customCSS);
+                } else {
+                    handle.applyTheme(data.theme);
+                }
                 currentTheme = data.theme;
             }
             break;
@@ -54,25 +62,24 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 return;
             }
             await handle.ensureAllPluginsRendered();
-            const html = handle.getLiveHTML();
+            const html = handle.buildExportHTML();
             vscode.postMessage({ type: 'exportHTMLResult', html });
             break;
         }
         case 'updateTheme': {
             if (!handle || !data.theme) return;
-            handle.applyTheme(data.theme);
+            if (data.customCSS) {
+                handle.applyTheme('custom:' + data.theme, data.customCSS);
+            } else {
+                handle.applyTheme(data.theme);
+            }
             currentTheme = data.theme;
             break;
         }
         case 'applyCustomTheme': {
-            if (!data.css) return;
-            let styleEl = document.getElementById('custom-theme-style');
-            if (!styleEl) {
-                styleEl = document.createElement('style');
-                styleEl.id = 'custom-theme-style';
-                document.head.appendChild(styleEl);
-            }
-            styleEl.textContent = data.css;
+            if (!data.css || !handle) return;
+            const themeName = data.name || currentTheme;
+            handle.applyTheme('custom:' + themeName, data.css);
             break;
         }
         case 'togglePlugin': {
