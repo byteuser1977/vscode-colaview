@@ -15,9 +15,13 @@ body.theme-light, body:not([class*="theme-"]) {
   --color-selection-bg: rgba(9, 105, 218, 0.15);
   --code-bg: #ffffff;
   --code-color: var(--color-accent);
-  --code-block-bg: #f6f8fa;
   --code-block-text: var(--color-text);
   --blockquote-border: #d0d7de;
+  --blockquote-bg: #ffffff !important;
   --table-header-bg: #f6f8fa;
   --table-border: #d0d7de;
+}
+
+body.theme-light #editor .ProseMirror blockquote {
+  background: var(--blockquote-bg);
 }

@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",

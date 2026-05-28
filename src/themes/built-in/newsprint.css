@@ -16,6 +16,7 @@ body.theme-newsprint {
   --code-color: var(--color-text);
   --code-block-bg: #eae6de;
   --code-block-text: var(--color-text);
+  --blockquote-bg: #eae6de;
   --blockquote-border: #999;
   --table-header-bg: #eae6de;
   --table-border: #d4d0c8;
@@ -26,4 +27,8 @@ body.theme-newsprint {
   /* Newsprint 字体：衬线 */
   --font-family-base: "PT Serif", Georgia, "Times New Roman", "Songti SC", serif;
   --font-family-heading: var(--font-family-base);
+}
+
+body.theme-newsprint #editor .ProseMirror blockquote {
+  background: var(--blockquote-bg);
 }
