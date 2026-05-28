@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.1-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 
@@ -193,6 +193,10 @@ npm run package
 项目使用 **esbuild** 打包 — 所有依赖（包括 `@bytechain.cn/colamd`、`katex`、`mermaid`、`puppeteer`）均内联到 `out/extension.js`。构建时自动复制资源文件（CSS、WebView HTML/JS）到 `out/` 目录。最终 VSIX 约 206KB，零外部依赖。
 
 ## 更新日志
+
+### v0.1.2
+
+- **🐛 引用块背景色修复** — 修复 Dark、Light、Newsprint 主题下 blockquote 背景色被页面背景色覆盖的问题，4 套内置主题现在均正确显示各自配置的 `--blockquote-bg` 背景色
 
 ### v0.1.1
 

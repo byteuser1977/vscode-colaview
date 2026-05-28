@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.1-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
@@ -193,6 +193,10 @@ npm run package
 The project uses **esbuild** for bundling — all dependencies (including `@bytechain.cn/colamd`, `katex`, `mermaid`, `puppeteer`) are inlined into `out/extension.js`. Resource files (CSS, WebView HTML/JS) are copied to `out/` during build. The resulting VSIX is ~206KB with zero external dependencies.
 
 ## Changelog
+
+### v0.1.2
+
+- **🐛 Blockquote Background Fix** — Fixed blockquote background color being overridden by page background in Dark, Light, and Newsprint themes; all 4 built-in themes now correctly display their configured `--blockquote-bg` values
 
 ### v0.1.1
 
