@@ -11,10 +11,10 @@ body.theme-elegant {
   --color-accent-dark: #a33d22;
   --color-accent-light: #d8d3ce;
   --color-selection-bg: rgba(196, 75, 43, 0.2);
-  --code-bg: #e8e4df;
+  --code-bg: #e0d8cf;
   --code-color: #c44b2b;
-  --code-block-bg: #2c2c2c;
-  --code-block-text: #e0dcd7;
+  --code-block-bg: #e8e2db;
+  --code-block-text: #3d3530;
   --blockquote-bg: #eae6e1;
   --blockquote-border: #c44b2b;
   --blockquote-color: #444;

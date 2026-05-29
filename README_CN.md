@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 
@@ -191,6 +191,23 @@ npm run package
 ### 构建系统
 
 项目使用 **esbuild** 打包 — 所有依赖（包括 `@bytechain.cn/colamd`、`katex`、`mermaid`、`puppeteer`）均内联到 `out/extension.js`。构建时自动复制资源文件（CSS、WebView HTML/JS）到 `out/` 目录。最终 VSIX 约 206KB，零外部依赖。
+
+## 更新日志
+
+### v0.1.2
+
+- **🐛 引用块背景色修复** — 修复 Dark、Light、Newsprint 主题下 blockquote 背景色被页面背景色覆盖的问题，4 套内置主题现在均正确显示各自配置的 `--blockquote-bg` 背景色
+
+### v0.1.1
+
+- **🎨 主题一致性修复** — 统一 4 套内置主题（Light、Dark、Elegant、Newsprint）的 `--code-color` 和 `--code-block-text` CSS 变量，解决行内代码与代码块字体颜色不一致的问题
+- **📰 Newsprint 主题对齐** — Newsprint 主题变量完全对齐 [ColaMD-extend](https://github.com/byteuser1977/ColaMD-extend) base.css，包括衬线字体（PT Serif 字体栈）、代码颜色继承及全部语义化颜色 token
+- **🔧 Light 主题补全** — 补充 Light 主题缺失的 `--table-border` 变量，确保表格样式一致
+- **📦 依赖迁移** — 从本地 ColaMD 项目引用切换为 npm 包 `@bytechain.cn/colamd` (^1.5.2)
+
+### v0.1.0
+
+- 首次发布，包含所见即所得预览、PDF/HTML 导出、4 套内置主题、自定义主题支持
 
 ## 许可证
 

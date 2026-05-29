@@ -1,5 +1,6 @@
 /*
  * ColaMD 主题系统：Newsprint 主题变量 (报纸打印风格)
+ * 依赖：foundation.css
  */
 body.theme-newsprint {
   --color-bg: #f5f2eb;
@@ -11,8 +12,11 @@ body.theme-newsprint {
   --color-accent-dark: #1e4060;
   --color-accent-light: rgba(44, 95, 138, 0.12);
   --color-selection-bg: rgba(44, 95, 138, 0.15);
-  --code-bg: rgba(0, 0, 0, 0.05);
+  --code-bg: #f5f2eb;
+  --code-color: var(--color-text);
   --code-block-bg: #eae6de;
+  --code-block-text: var(--color-text);
+  --blockquote-bg: #eae6de;
   --blockquote-border: #999;
   --table-header-bg: #eae6de;
   --table-border: #d4d0c8;
@@ -20,6 +24,11 @@ body.theme-newsprint {
   --scrollbar-thumb: #ccc8c2;
   --scrollbar-thumb-hover: #b5b0aa;
 
+  /* Newsprint 字体：衬线 */
   --font-family-base: "PT Serif", Georgia, "Times New Roman", "Songti SC", serif;
   --font-family-heading: var(--font-family-base);
+}
+
+body.theme-newsprint #editor .ProseMirror blockquote {
+  background: var(--blockquote-bg);
 }

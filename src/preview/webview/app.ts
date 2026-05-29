@@ -13,6 +13,18 @@ let currentMarkdown = '';
 let currentTheme = 'light';
 let themeListData: { builtins: string[]; customs: string[]; current: string } | null = null;
 
+/** 注入扩展端的主题 CSS（foundation + theme），覆盖 colamd.css 中的旧变量值 */
+function injectThemeCSS(css: string | undefined): void {
+    if (!css) return;
+    let el = document.getElementById('colaview-theme-css');
+    if (!el) {
+        el = document.createElement('style');
+        el.id = 'colaview-theme-css';
+        document.head.appendChild(el);
+    }
+    el.textContent = css;
+}
+
 // ── Message handler ──
 window.addEventListener('message', async (event: MessageEvent) => {
     const data = event.data;
@@ -20,12 +32,18 @@ window.addEventListener('message', async (event: MessageEvent) => {
         case 'init': {
             try {
                 currentTheme = data.theme || 'light';
+                // 注入扩展端主题 CSS（覆盖 colamd.css 旧变量）
+                injectThemeCSS(data.themeCSS);
                 handle = await createColaMDEditor({
                     rootId: 'editor',
                     theme: currentTheme,
                     editable: false,
                     onChange: (md: string) => { currentMarkdown = md; },
                 });
+                // 自定义主题需要 custom: 前缀 + CSS
+                if (data.customCSS && data.theme) {
+                    handle.applyTheme('custom:' + data.theme, data.customCSS);
+                }
                 if (data.markdown) {
                     handle.setMarkdown(data.markdown);
                     currentMarkdown = data.markdown;
@@ -43,7 +61,12 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 currentMarkdown = data.markdown;
             }
             if (data.theme) {
-                handle.applyTheme(data.theme);
+                injectThemeCSS(data.themeCSS);
+                if (data.customCSS) {
+                    handle.applyTheme('custom:' + data.theme, data.customCSS);
+                } else {
+                    handle.applyTheme(data.theme);
+                }
                 currentTheme = data.theme;
             }
             break;
@@ -54,25 +77,25 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 return;
             }
             await handle.ensureAllPluginsRendered();
-            const html = handle.getLiveHTML();
+            const html = handle.buildExportHTML();
             vscode.postMessage({ type: 'exportHTMLResult', html });
             break;
         }
         case 'updateTheme': {
             if (!handle || !data.theme) return;
-            handle.applyTheme(data.theme);
+            injectThemeCSS(data.themeCSS);
+            if (data.customCSS) {
+                handle.applyTheme('custom:' + data.theme, data.customCSS);
+            } else {
+                handle.applyTheme(data.theme);
+            }
             currentTheme = data.theme;
             break;
         }
         case 'applyCustomTheme': {
-            if (!data.css) return;
-            let styleEl = document.getElementById('custom-theme-style');
-            if (!styleEl) {
-                styleEl = document.createElement('style');
-                styleEl.id = 'custom-theme-style';
-                document.head.appendChild(styleEl);
-            }
-            styleEl.textContent = data.css;
+            if (!data.css || !handle) return;
+            const themeName = data.name || currentTheme;
+            handle.applyTheme('custom:' + themeName, data.css);
             break;
         }
         case 'togglePlugin': {

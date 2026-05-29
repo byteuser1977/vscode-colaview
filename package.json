@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",
@@ -137,8 +137,7 @@
     "package": "vsce package"
   },
   "dependencies": {
-    "@bytechain.cn/colamd": "file:../ColaMD-extend",
-    "katex": "^0.16.46",
+    "@bytechain.cn/colamd": "^1.5.2",
     "mermaid": "^11.15.0",
     "puppeteer-core": "^25.1.0"
   },

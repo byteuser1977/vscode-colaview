@@ -33,14 +33,13 @@ export function registerCommands(
                 vscode.window.showErrorMessage('ColaView: Preview manager not available');
                 return;
             }
-            // Ensure preview panel is open and get rendered HTML from WebView
             previewManager.showPreview();
-            const renderedHTML = await previewManager.getExportHTML();
-            if (!renderedHTML) {
+            const fullHTML = await previewManager.getExportHTML();
+            if (!fullHTML) {
                 vscode.window.showWarningMessage('ColaView: Could not get rendered HTML from preview');
                 return;
             }
-            await exportHTML(context, editor.document, renderedHTML);
+            await exportHTML(editor.document, fullHTML);
         }),
 
         vscode.commands.registerCommand('colaview.exportPDF', async () => {
@@ -53,14 +52,13 @@ export function registerCommands(
                 vscode.window.showErrorMessage('ColaView: Preview manager not available');
                 return;
             }
-            // Ensure preview panel is open and get rendered HTML from WebView
             previewManager.showPreview();
-            const renderedHTML = await previewManager.getExportHTML();
-            if (!renderedHTML) {
+            const fullHTML = await previewManager.getExportHTML();
+            if (!fullHTML) {
                 vscode.window.showWarningMessage('ColaView: Could not get rendered HTML from preview');
                 return;
             }
-            await exportPDF(context, editor.document, renderedHTML);
+            await exportPDF(editor.document, fullHTML);
         }),
 
         vscode.commands.registerCommand('colaview.switchTheme', async () => {
@@ -71,9 +69,12 @@ export function registerCommands(
             ];
             const picked = await vscode.window.showQuickPick(items);
             if (picked) {
-                const theme = picked.label.toLowerCase();
-                await ThemeManager.switchTheme(theme);
-                previewManager?.sendTheme(theme);
+                const name = picked.label.toLowerCase();
+                await ThemeManager.switchTheme(name);
+                // 自定义主题需要通过 handleSwitchTheme 发送 CSS
+                if (previewManager) {
+                    previewManager.switchThemeFromCommand(name);
+                }
             }
         }),
 
@@ -83,9 +84,10 @@ export function registerCommands(
                 canSelectMany: false,
             });
             if (uris && uris[0]) {
-                const result = await ThemeManager.importCustomTheme(uris[0]);
-                if (result) {
-                    previewManager?.sendCustomThemeCSS(result.name, result.css);
+                await ThemeManager.importCustomTheme(uris[0]);
+                // 导入后刷新主题列表
+                if (previewManager) {
+                    previewManager.refreshThemeList();
                 }
             }
         })

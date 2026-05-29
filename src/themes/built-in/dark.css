@@ -12,11 +12,17 @@ body.theme-dark {
   --color-accent-light: rgba(88, 166, 255, 0.15);
   --color-selection-bg: rgba(88, 166, 255, 0.2);
   --code-bg: rgba(110, 118, 129, 0.3);
+  --code-color: var(--color-accent);
   --code-block-bg: #161b22;
   --code-block-text: #e6edf3;
+  --blockquote-bg: #161b22;
   --blockquote-border: #30363d;
   --table-header-bg: #161b22;
   --table-border: #30363d;
   --scrollbar-thumb: #30363d;
   --scrollbar-thumb-hover: #484f58;
+}
+
+body.theme-dark #editor .ProseMirror blockquote {
+  background: var(--blockquote-bg);
 }
