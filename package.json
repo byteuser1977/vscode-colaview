@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.1.2",
+  "version": "1.5.3-beta.0",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",
@@ -123,6 +123,11 @@
           "type": "string",
           "default": "",
           "description": "Custom theme CSS directory path"
+        },
+        "colaview.scrollSync": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable scroll sync between editor and preview"
         }
       }
     }

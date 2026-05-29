@@ -5,23 +5,33 @@ import { registerCommands } from './commands/commands';
 import { ThemeManager } from './themes/theme-manager';
 
 export function activate(context: vscode.ExtensionContext) {
+    console.log('ColaView: Activating extension...');
+    
+    let themeManagerReady = false;
     try {
         ThemeManager.init(context);
+        themeManagerReady = true;
+        console.log('ColaView: ThemeManager initialized');
     } catch (e) {
         console.error('ColaView: ThemeManager.init failed:', e);
+        vscode.window.showWarningMessage(`ColaView: ThemeManager init failed, some features may not work: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     let previewManager: PreviewManager | null = null;
     try {
         previewManager = new PreviewManager(context);
+        console.log('ColaView: PreviewManager initialized');
     } catch (e) {
         console.error('ColaView: PreviewManager init failed:', e);
+        vscode.window.showErrorMessage(`ColaView: Failed to initialize preview manager: ${e instanceof Error ? e.message : String(e)}. Please check the developer console for more details.`);
     }
 
     try {
         registerCommands(context, previewManager);
+        console.log('ColaView: Commands registered');
     } catch (e) {
         console.error('ColaView: registerCommands failed:', e);
+        vscode.window.showErrorMessage(`ColaView: registerCommands failed: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     if (previewManager && vscode.workspace.getConfiguration('colaview').get('autoPreview')) {

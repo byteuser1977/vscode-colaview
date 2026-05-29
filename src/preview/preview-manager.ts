@@ -6,9 +6,6 @@ import { ThemeManager } from '../themes/theme-manager';
 import { exportHTML } from '../export/html-exporter';
 import { exportPDF } from '../export/pdf-exporter';
 
-/**
- * 生成随机 nonce 字符串，用于 CSP 安全策略
- */
 function getNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -18,9 +15,21 @@ function getNonce(): string {
     return result;
 }
 
-/**
- * PreviewManager — 管理 WebView 预览面板的创建、更新和销毁
- */
+function getTopVisibleLine(editor: vscode.TextEditor): number | undefined {
+    if (!editor.visibleRanges.length) {
+        return undefined;
+    }
+    return editor.visibleRanges[0].start.line;
+}
+
+function getBottomVisibleLine(editor: vscode.TextEditor): number | undefined {
+    if (!editor.visibleRanges.length) {
+        return undefined;
+    }
+    const lastRange = editor.visibleRanges[editor.visibleRanges.length - 1];
+    return lastRange.end.line;
+}
+
 export class PreviewManager {
     private panel: vscode.WebviewPanel | null = null;
     private currentUri: vscode.Uri | null = null;
@@ -28,21 +37,142 @@ export class PreviewManager {
     private disposables: vscode.Disposable[] = [];
     private pendingDocument: vscode.TextDocument | null = null;
     private exportResolve: ((html: string) => void) | null = null;
+    private editorScrollDelay = Date.now();
 
     constructor(private context: vscode.ExtensionContext) {
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor && editor.document.languageId === 'markdown' && this.panel) {
-                if (this.currentUri?.toString() !== editor.document.uri.toString()) {
-                    this.currentUri = editor.document.uri;
-                    this.updatePreview(editor.document);
-                }
-            }
-        }, null, this.disposables);
+        try {
+            this.setupEventListeners();
+            console.log('[ColaView] PreviewManager constructor completed successfully');
+        } catch (e) {
+            console.error('[ColaView] PreviewManager constructor failed:', e);
+            throw e;
+        }
     }
 
-    /**
-     * 打开或聚焦预览面板
-     */
+    private setupEventListeners(): void {
+        try {
+            vscode.window.onDidChangeActiveTextEditor(editor => {
+                try {
+                    if (editor && editor.document.languageId === 'markdown' && this.panel) {
+                        if (this.currentUri?.toString() !== editor.document.uri.toString()) {
+                            this.currentUri = editor.document.uri;
+                            this.updatePreview(editor.document);
+                        }
+                    }
+                } catch (e) {
+                    console.error('[ColaView] onDidChangeActiveTextEditor handler error:', e);
+                }
+            }, null, this.disposables);
+
+            vscode.window.onDidChangeTextEditorSelection((event) => {
+                try {
+                    if (!this.isScrollSyncEnabled()) {
+                        return;
+                    }
+                    const textEditor = event.textEditor;
+                    if (Date.now() < this.editorScrollDelay) {
+                        return;
+                    }
+                    if (textEditor.document.languageId !== 'markdown') {
+                        return;
+                    }
+                    if (textEditor.document.uri.toString() !== this.currentUri?.toString()) {
+                        return;
+                    }
+
+                    const topLine = getTopVisibleLine(textEditor);
+                    const bottomLine = getBottomVisibleLine(textEditor);
+
+                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') {
+                        return;
+                    }
+
+                    const cursorLine = event.selections[0].active.line;
+                    const topRatio = (bottomLine > topLine) 
+                        ? (cursorLine - topLine) / (bottomLine - topLine) 
+                        : 0.3;
+
+                    this.panel?.webview.postMessage({
+                        type: 'editorScroll',
+                        line: cursorLine,
+                        totalLines: textEditor.document.lineCount,
+                        topRatio: Math.max(0, Math.min(1, topRatio)),
+                    });
+                } catch (e) {
+                    console.error('[ColaView] onDidChangeTextEditorSelection handler error:', e);
+                }
+            }, null, this.disposables);
+
+            vscode.window.onDidChangeTextEditorVisibleRanges((event) => {
+                try {
+                    if (!this.isScrollSyncEnabled()) {
+                        return;
+                    }
+                    const textEditor = event.textEditor;
+                    if (Date.now() < this.editorScrollDelay) {
+                        return;
+                    }
+                    if (textEditor.document.languageId !== 'markdown') {
+                        return;
+                    }
+                    if (textEditor.document.uri.toString() !== this.currentUri?.toString()) {
+                        return;
+                    }
+
+                    const totalLines = textEditor.document.lineCount;
+                    if (totalLines <= 1) {
+                        return;
+                    }
+
+                    const topLine = getTopVisibleLine(textEditor);
+                    const bottomLine = getBottomVisibleLine(textEditor);
+
+                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') {
+                        return;
+                    }
+
+                    let midLine: number;
+                    if (topLine === 0) {
+                        midLine = 0;
+                    } else if (Math.floor(bottomLine) === totalLines - 1) {
+                        midLine = bottomLine;
+                    } else {
+                        midLine = Math.floor((topLine + bottomLine) / 2);
+                    }
+
+                    const scrollPercent = midLine / (totalLines - 1);
+
+                    this.panel?.webview.postMessage({
+                        type: 'editorScroll',
+                        scrollPercent: Math.max(0, Math.min(1, scrollPercent)),
+                    });
+                } catch (e) {
+                    console.error('[ColaView] onDidChangeTextEditorVisibleRanges handler error:', e);
+                }
+            }, null, this.disposables);
+
+            vscode.window.onDidChangeConfiguration((event) => {
+                try {
+                    if (event.affectsConfiguration('colaview.scrollSync')) {
+                        console.log('[ColaView] scrollSync setting changed:', this.isScrollSyncEnabled());
+                    }
+                } catch (e) {
+                    console.error('[ColaView] onDidChangeConfiguration handler error:', e);
+                }
+            }, null, this.disposables);
+        } catch (e) {
+            console.error('[ColaView] setupEventListeners failed:', e);
+        }
+    }
+
+    private isScrollSyncEnabled(): boolean {
+        try {
+            return vscode.workspace.getConfiguration('colaview').get<boolean>('scrollSync', false);
+        } catch {
+            return false;
+        }
+    }
+
     showPreview(): void {
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.languageId !== 'markdown') {
@@ -74,7 +204,7 @@ export class PreviewManager {
             this.panel.webview.html = this.buildWebViewHTML();
             this.panel.onDidDispose(() => { this.panel = null; }, null, this.disposables);
 
-            this.panel.webview.onDidReceiveMessage((msg: { type: string; html?: string; message?: string; name?: string }) => {
+            this.panel.webview.onDidReceiveMessage((msg: { type: string; html?: string; message?: string; name?: string; scrollPercent?: number }) => {
                 console.log('[ColaView] WebView message:', msg.type);
                 switch (msg.type) {
                     case 'ready': {
@@ -83,7 +213,6 @@ export class PreviewManager {
                         const builtins = ThemeManager.getBuiltinThemes();
                         const isCustom = !builtins.includes(theme);
                         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
-                        // 始终发送 foundation + 主题 CSS，覆盖 colamd.css 中的旧变量值
                         const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
                         console.log('[ColaView] Sending init: theme=', theme, 'isCustom=', isCustom, 'markdownLen=', markdown.length);
                         this.panel?.webview.postMessage({
@@ -94,7 +223,6 @@ export class PreviewManager {
                             themeCSS,
                         });
                         this.pendingDocument = null;
-                        // 预推送主题列表，避免首次右键菜单为空
                         const list = ThemeManager.getThemeList();
                         this.panel?.webview.postMessage({ type: 'themeList', ...list });
                         break;
@@ -134,6 +262,10 @@ export class PreviewManager {
                         }
                         break;
                     }
+                    case 'scrollSync': {
+                        this.handleScrollSync(msg);
+                        break;
+                    }
                 }
             }, null, this.disposables);
 
@@ -150,9 +282,6 @@ export class PreviewManager {
         }
     }
 
-    /**
-     * 处理导出 HTML 请求
-     */
     private async handleExportHTML(): Promise<void> {
         if (!this.currentUri) {
             vscode.window.showWarningMessage('No Markdown file is open');
@@ -171,9 +300,6 @@ export class PreviewManager {
         }
     }
 
-    /**
-     * 处理导出 PDF 请求
-     */
     private async handleExportPDF(): Promise<void> {
         if (!this.currentUri) {
             vscode.window.showWarningMessage('No Markdown file is open');
@@ -192,9 +318,6 @@ export class PreviewManager {
         }
     }
 
-    /**
-     * 处理切换主题请求
-     */
     private async handleSwitchTheme(name: string): Promise<void> {
         await ThemeManager.switchTheme(name);
         const builtins = ThemeManager.getBuiltinThemes();
@@ -206,9 +329,6 @@ export class PreviewManager {
         this.panel?.webview.postMessage({ type: 'themeList', ...list });
     }
 
-    /**
-     * 更新 WebView 预览内容 — 发送 raw markdown，由 Milkdown 渲染
-     */
     private updatePreview(document: vscode.TextDocument): void {
         if (!this.panel) return;
 
@@ -228,9 +348,6 @@ export class PreviewManager {
         });
     }
 
-    /**
-     * 从 WebView 获取渲染后的 HTML（用于导出）
-     */
     async getExportHTML(): Promise<string> {
         if (!this.panel) {
             throw new Error('No preview panel is open. Please open a preview first.');
@@ -247,17 +364,11 @@ export class PreviewManager {
         });
     }
 
-    /**
-     * 向 WebView 发送主题切换消息（内置主题）
-     */
     sendTheme(theme: string): void {
         if (!this.panel) return;
         this.panel.webview.postMessage({ type: 'updateTheme', theme });
     }
 
-    /**
-     * 从命令面板切换主题（支持自定义主题）
-     */
     switchThemeFromCommand(name: string): void {
         if (!this.panel) return;
         const builtins = ThemeManager.getBuiltinThemes();
@@ -269,26 +380,39 @@ export class PreviewManager {
         this.panel.webview.postMessage({ type: 'themeList', ...list });
     }
 
-    /**
-     * 刷新主题列表（导入主题后调用）
-     */
     refreshThemeList(): void {
         if (!this.panel) return;
         const list = ThemeManager.getThemeList();
         this.panel.webview.postMessage({ type: 'themeList', ...list });
     }
 
-    /**
-     * 向 WebView 发送插件开关消息
-     */
     togglePlugin(id: string, enabled: boolean): void {
         if (!this.panel) return;
         this.panel.webview.postMessage({ type: 'togglePlugin', id, enabled });
     }
 
-    /**
-     * 构建 WebView HTML 内容
-     */
+    private handleScrollSync(msg: { scrollPercent: number }): void {
+        const scrollSyncEnabled = vscode.workspace.getConfiguration('colaview').get<boolean>('scrollSync', false);
+        if (!scrollSyncEnabled) {
+            return;
+        }
+
+        const scrollPercent = msg.scrollPercent;
+        
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.uri.toString() !== this.currentUri?.toString()) {
+            return;
+        }
+
+        const totalLines = editor.document.lineCount;
+        const targetLine = Math.floor(scrollPercent * (totalLines - 1));
+        
+        this.editorScrollDelay = Date.now() + 500;
+        
+        const range = new vscode.Range(targetLine, 0, targetLine + 1, 0);
+        editor.revealRange(range, vscode.TextEditorRevealType.AtTop);
+    }
+
     private buildWebViewHTML(): string {
         const outDir = path.join(this.context.extensionPath, 'out', 'preview', 'webview');
         const srcDir = path.join(this.context.extensionPath, 'src', 'preview', 'webview');
@@ -323,9 +447,6 @@ export class PreviewManager {
         return html;
     }
 
-    /**
-     * 释放所有资源
-     */
     dispose(): void {
         this.panel?.dispose();
         this.disposables.forEach(d => d.dispose());
