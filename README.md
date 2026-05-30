@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.3-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
@@ -14,11 +14,11 @@ Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](http
 - **Mermaid Diagrams** — 17+ chart types: flowcharts, sequence, class, state, ER, Gantt, mind maps, etc.
 - **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
 - **HTML Export** — Standalone `.html` with embedded CSS, zero-dependency sharing
-- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + custom CSS import
+- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + 2 custom themes (Academic Paper, Trae Blue)
 - **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
 - **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
-- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings at runtime
-- **Live Sync** — 150ms debounced update while editing
+- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings, changes sync to preview in real-time
+- **Live Sync** — 150ms debounced update while editing, experimental scroll sync between editor and preview
 
 ## Quick Start
 
@@ -63,7 +63,12 @@ When the preview is open, right-click anywhere to access:
 
 ### Custom Themes
 
-Place `.css` files in the `.themes/` directory at your workspace root:
+Place `.css` files in the `.themes/` directory at your workspace root. Two custom themes are bundled with the extension:
+
+| Theme | Style | Best For |
+|-------|-------|----------|
+| **Academic Paper** | GB/T 7713 standard, serif body, three-line tables, black-on-white | Academic papers, formal documents, printing |
+| **Trae Blue** | Trae IDE documentation style, white + Slate gray, blue accents | Technical docs, modern documentation |
 
 ```
 my-project/
@@ -194,17 +199,18 @@ The project uses **esbuild** for bundling — all dependencies (including `@byte
 
 ## Changelog
 
-### v1.5.3-beta.0
+### v0.2.0 (Current)
 
-- **🔄 Experimental Scroll Sync** — Bidirectional scroll synchronization between editor and preview panel. Enable via `colaview.scrollSync` setting.
-- **🎨 New Custom Themes** — Swiss Design, Trae Blue, Forest Ink, and Academic Paper themes available in `.themes/` directory.
-- **🐛 Style Fixes** — Fixed list indentation, h4 color inconsistency, and print margin width in exports.
-- **⚡ Code Optimization** — Removed dead code, optimized debug logging, fixed test imports.
+- **🏗️ Architecture Overhaul** — Error-isolated activation, refactored PreviewManager, runtime plugin toggle sync for math/mermaid settings
+- **🖱️ Right-Click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — directly in the preview panel
+- **🎨 New Custom Themes** — Academic Paper (GB/T 7713 standard) and Trae Blue (Trae IDE documentation style)
+- **🧹 Cleanup** — Removed obsolete files (`debug-load.js`, `configuration.ts`, `file-utils.ts`)
+- **🐛 Fixes** — h4 color consistency, code block border color, print margin width
 
 ### v0.1.3
 
+- **🔄 Experimental Scroll Sync** — Bidirectional scroll synchronization between editor and preview panel. Enable via `colaview.scrollSync` setting.
 - Enhanced error handling in extension activation and preview manager initialization
-- Improved scroll sync algorithm with relative position mapping and debouncing
 
 ### v0.1.2
 

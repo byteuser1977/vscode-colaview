@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.3-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 
@@ -14,11 +14,11 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 - **Mermaid 图表** — 17+ 种图表：流程图、时序图、类图、状态图、ER 图、甘特图、思维导图等
 - **PDF 导出** — Puppeteer 无头 Chrome 生成 A4 PDF，完整保留主题样式
 - **HTML 导出** — 独立 `.html` 文件，内嵌 CSS，零依赖分享
-- **4 套内置主题** — Light、Dark、Elegant、Newsprint + 自定义 CSS 导入
+- **4 套内置主题** — Light、Dark、Elegant、Newsprint + 2 套自定义主题（学术论文、Trae Blue）
 - **自定义主题目录** — 在工作区根目录 `.themes/` 文件夹中放入 `.css` 文件即可自动识别
 - **右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
-- **插件开关** — 通过设置在运行时动态启用/禁用数学公式和 Mermaid 渲染
-- **实时同步** — 编辑后 150ms 防抖更新
+- **插件开关** — 通过设置在运行时动态启用/禁用数学公式和 Mermaid 渲染，配置变更实时同步到预览
+- **实时同步** — 编辑后 150ms 防抖更新，实验性编辑器/预览滚动同步
 
 ## 快速开始
 
@@ -63,7 +63,12 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 
 ### 自定义主题
 
-在工作区根目录的 `.themes/` 目录下放置 `.css` 文件：
+在工作区根目录的 `.themes/` 目录下放置 `.css` 文件。扩展内置了 2 套自定义主题：
+
+| 主题 | 风格 | 适用场景 |
+|------|------|----------|
+| **Academic Paper（学术论文）** | GB/T 7713 标准，衬线正文，三线表，纯黑白 | 学术论文、正式文档、打印 |
+| **Trae Blue** | Trae IDE 文档风格，白底 slate 灰字，蓝色点缀 | 技术文档、现代文档编写 |
 
 ```
 my-project/
@@ -194,17 +199,18 @@ npm run package
 
 ## 更新日志
 
-### v1.5.3-beta.0
+### v0.2.0（当前版本）
 
-- **🔄 实验性滚动同步** — 编辑器与预览面板双向滚动同步。通过 `colaview.scrollSync` 设置启用。
-- **🎨 新增自定义主题** — `.themes/` 目录新增 Swiss Design、Trae Blue、Forest Ink、Academic Paper 四套主题。
-- **🐛 样式修复** — 修复导出时列表缩进、h4 颜色不一致、打印页边距过宽等问题。
-- **⚡ 代码优化** — 移除死代码、优化调试日志、修复测试文件过期引用。
+- **🏗️ 架构重构** — 激活流程错误隔离、PreviewManager 重构、math/mermaid 设置变更自动实时同步
+- **🖱️ 右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
+- **🎨 新增自定义主题** — 学术论文 Academic Paper（GB/T 7713 标准）和 Trae Blue（Trae IDE 文档风格）
+- **🧹 代码清理** — 移除废弃文件（`debug-load.js`、`configuration.ts`、`file-utils.ts`）
+- **🐛 问题修复** — h4 标题颜色一致性、代码块边框颜色、打印页边距宽度
 
 ### v0.1.3
 
+- **🔄 实验性滚动同步** — 编辑器与预览面板双向滚动同步。通过 `colaview.scrollSync` 设置启用。
 - 增强扩展激活和预览管理器初始化时的错误处理
-- 改进滚动同步算法，支持相对位置映射和防抖
 
 ### v0.1.2
 
