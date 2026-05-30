@@ -12,8 +12,91 @@ let handle: ColaMDEditorHandle | null = null;
 let currentMarkdown = '';
 let currentTheme = 'light';
 let themeListData: { builtins: string[]; customs: string[]; current: string } | null = null;
+let scrollDebounceTimer: number | null = null;
+let receivedScrollFromEditor = false;
 
-/** 注入扩展端的主题 CSS（foundation + theme），覆盖 colamd.css 中的旧变量值 */
+function setupScrollSync(): void {
+    const editorEl = document.getElementById('editor');
+    if (!editorEl) return;
+
+    editorEl.addEventListener('scroll', (e) => {
+        const target = e.target as HTMLElement;
+        if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
+        
+        scrollDebounceTimer = window.setTimeout(() => {
+            if (receivedScrollFromEditor) {
+                receivedScrollFromEditor = false;
+                return;
+            }
+
+            const scrollPercent = target.scrollTop / (target.scrollHeight - target.clientHeight);
+            vscode.postMessage({
+                type: 'scrollSync',
+                scrollPercent: Math.max(0, Math.min(1, scrollPercent)),
+            });
+        }, 50);
+    });
+}
+
+function scrollToPercent(percent: number): void {
+    const editorEl = document.getElementById('editor');
+    if (!editorEl || !handle) return;
+
+    receivedScrollFromEditor = true;
+    
+    const maxScroll = editorEl.scrollHeight - editorEl.clientHeight;
+    const targetScrollTop = Math.max(0, Math.min(percent * maxScroll, maxScroll));
+    
+    editorEl.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+    });
+}
+
+function scrollToLine(line: number, totalLines: number, topRatio: number = 0.3): void {
+    const editorEl = document.getElementById('editor');
+    if (!editorEl || !handle) return;
+
+    receivedScrollFromEditor = true;
+
+    const contentEl = editorEl.querySelector('.editor-content, .milkdown, .prosemirror') || editorEl.firstElementChild;
+    if (!contentEl) {
+        const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
+        scrollToPercent(scrollPercent);
+        return;
+    }
+
+    const lineElements = contentEl.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, tr, code, pre, div');
+    if (lineElements.length === 0) {
+        const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
+        scrollToPercent(scrollPercent);
+        return;
+    }
+
+    const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
+    let targetIndex = Math.min(Math.floor(scrollPercent * lineElements.length), lineElements.length - 1);
+
+    const targetElement = lineElements[targetIndex] as HTMLElement;
+    if (targetElement) {
+        const editorRect = editorEl.getBoundingClientRect();
+        const elementRect = targetElement.getBoundingClientRect();
+        const elementOffsetTop = targetElement.offsetTop;
+
+        const currentScrollTop = editorEl.scrollTop;
+        const scrollOffset = elementOffsetTop - (editorRect.height * topRatio);
+        
+        const maxScroll = editorEl.scrollHeight - editorRect.height;
+        const finalScrollTop = Math.max(0, Math.min(scrollOffset, maxScroll));
+
+        editorEl.scrollTo({
+            top: finalScrollTop,
+            behavior: 'smooth'
+        });
+    } else {
+        scrollToPercent(scrollPercent);
+    }
+}
+
 function injectThemeCSS(css: string | undefined): void {
     if (!css) return;
     let el = document.getElementById('colaview-theme-css');
@@ -25,14 +108,12 @@ function injectThemeCSS(css: string | undefined): void {
     el.textContent = css;
 }
 
-// ── Message handler ──
 window.addEventListener('message', async (event: MessageEvent) => {
     const data = event.data;
     switch (data.type) {
         case 'init': {
             try {
                 currentTheme = data.theme || 'light';
-                // 注入扩展端主题 CSS（覆盖 colamd.css 旧变量）
                 injectThemeCSS(data.themeCSS);
                 handle = await createColaMDEditor({
                     rootId: 'editor',
@@ -40,7 +121,6 @@ window.addEventListener('message', async (event: MessageEvent) => {
                     editable: false,
                     onChange: (md: string) => { currentMarkdown = md; },
                 });
-                // 自定义主题需要 custom: 前缀 + CSS
                 if (data.customCSS && data.theme) {
                     handle.applyTheme('custom:' + data.theme, data.customCSS);
                 }
@@ -48,6 +128,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                     handle.setMarkdown(data.markdown);
                     currentMarkdown = data.markdown;
                 }
+                setupScrollSync();
             } catch (e) {
                 console.error('[ColaView] init failed:', e);
                 vscode.postMessage({ type: 'error', message: String(e) });
@@ -109,14 +190,19 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 customs: data.customs || [],
                 current: data.current || currentTheme,
             };
-            // If context menu is open, refresh theme submenu
             refreshThemeSubmenu();
+            break;
+        }
+        case 'editorScroll': {
+            if (data.scrollPercent !== undefined) {
+                scrollToPercent(data.scrollPercent);
+            } else if (data.line !== undefined) {
+                scrollToLine(data.line, data.totalLines || 100, data.topRatio || 0.3);
+            }
             break;
         }
     }
 });
-
-// ── Context Menu ──
 
 let menuEl: HTMLElement | null = null;
 let themeSubmenuEl: HTMLElement | null = null;
@@ -155,7 +241,6 @@ function buildThemeSubmenu(): HTMLElement {
     themeSubmenuEl = submenu;
 
     if (!themeListData) {
-        // Request theme list from extension host
         vscode.postMessage({ type: 'requestThemeList' });
         const loading = document.createElement('div');
         loading.className = 'ctx-menu-item ctx-menu-disabled';
@@ -164,7 +249,6 @@ function buildThemeSubmenu(): HTMLElement {
         return submenu;
     }
 
-    // Built-in themes section
     for (const name of themeListData.builtins) {
         const item = document.createElement('div');
         item.className = 'ctx-menu-item' + (name === themeListData.current ? ' ctx-menu-active' : '');
@@ -178,7 +262,6 @@ function buildThemeSubmenu(): HTMLElement {
         submenu.appendChild(item);
     }
 
-    // Custom themes section
     if (themeListData.customs.length > 0) {
         const sep = document.createElement('div');
         sep.className = 'ctx-menu-separator';
@@ -218,19 +301,16 @@ function showMenu(x: number, y: number): void {
     menu.style.top = y + 'px';
     menuEl = menu;
 
-    // Export HTML
     menu.appendChild(createMenuItem('Export HTML', () => {
         vscode.postMessage({ type: 'requestExportHTML' });
     }));
 
-    // Export PDF
     menu.appendChild(createMenuItem('Export PDF', () => {
         vscode.postMessage({ type: 'requestExportPDF' });
     }));
 
     menu.appendChild(createMenuSeparator());
 
-    // Theme submenu
     const themeItem = document.createElement('div');
     themeItem.className = 'ctx-menu-item ctx-menu-has-submenu';
     themeItem.textContent = 'Theme';
@@ -239,14 +319,12 @@ function showMenu(x: number, y: number): void {
 
     menu.appendChild(createMenuSeparator());
 
-    // Import Theme
     menu.appendChild(createMenuItem('Import Theme...', () => {
         vscode.postMessage({ type: 'requestImportTheme' });
     }));
 
     document.body.appendChild(menu);
 
-    // Adjust position if menu goes off-screen
     const rect = menu.getBoundingClientRect();
     if (rect.right > window.innerWidth) {
         menu.style.left = (x - rect.width) + 'px';
@@ -255,18 +333,15 @@ function showMenu(x: number, y: number): void {
         menu.style.top = (y - rect.height) + 'px';
     }
 
-    // Close on click outside (deferred to avoid immediate close)
     setTimeout(() => {
         document.addEventListener('click', closeMenu);
         document.addEventListener('contextmenu', closeMenu);
     }, 0);
 }
 
-// Prevent default context menu and show custom one
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     showMenu(e.clientX, e.clientY);
 });
 
-// Signal that the WebView script has loaded
 vscode.postMessage({ type: 'ready' });

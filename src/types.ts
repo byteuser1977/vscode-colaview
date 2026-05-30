@@ -1,4 +1,3 @@
-// 公共类型定义
 export interface PDFExportOptions {
     format: 'A4' | 'Letter';
     margin: {
@@ -13,4 +12,9 @@ export interface PDFExportOptions {
 export interface HTMLExportOptions {
     embedImages: boolean;
     includeCDN: boolean;
+}
+
+export interface EditorScrollMessage {
+    type: 'editorScroll';
+    scrollPercent: number;
 }

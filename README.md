@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
@@ -14,11 +14,11 @@ Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](http
 - **Mermaid Diagrams** — 17+ chart types: flowcharts, sequence, class, state, ER, Gantt, mind maps, etc.
 - **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
 - **HTML Export** — Standalone `.html` with embedded CSS, zero-dependency sharing
-- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + custom CSS import
+- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + 2 custom themes (Academic Paper, Trae Blue)
 - **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
 - **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
-- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings at runtime
-- **Live Sync** — 150ms debounced update while editing
+- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings, changes sync to preview in real-time
+- **Live Sync** — 150ms debounced update while editing, experimental scroll sync between editor and preview
 
 ## Quick Start
 
@@ -63,7 +63,12 @@ When the preview is open, right-click anywhere to access:
 
 ### Custom Themes
 
-Place `.css` files in the `.themes/` directory at your workspace root:
+Place `.css` files in the `.themes/` directory at your workspace root. Two custom themes are bundled with the extension:
+
+| Theme | Style | Best For |
+|-------|-------|----------|
+| **Academic Paper** | GB/T 7713 standard, serif body, three-line tables, black-on-white | Academic papers, formal documents, printing |
+| **Trae Blue** | Trae IDE documentation style, white + Slate gray, blue accents | Technical docs, modern documentation |
 
 ```
 my-project/
@@ -93,6 +98,7 @@ Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or v
 | `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF engine: `puppeteer` or `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | Auto-open preview for `.md` files |
 | `colaview.customThemesPath` | `string` | `""` | Directory for custom theme CSS files |
+| `colaview.scrollSync` | `boolean` | `false` | **Experimental** — Enable scroll sync between editor and preview |
 
 ## Supported Syntax
 
@@ -165,8 +171,7 @@ src/
 │   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
 │   ├── foundation.css        # Base CSS variables (colors, spacing)
 │   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
-├── config/configuration.ts   # Settings defaults
-└── utils/file-utils.ts       # File I/O helpers
+└── types.ts                  # Shared type definitions
 ```
 
 ## Development
@@ -194,9 +199,22 @@ The project uses **esbuild** for bundling — all dependencies (including `@byte
 
 ## Changelog
 
+### v0.2.0 (Current)
+
+- **🏗️ Architecture Overhaul** — Error-isolated activation, refactored PreviewManager, runtime plugin toggle sync for math/mermaid settings
+- **🖱️ Right-Click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — directly in the preview panel
+- **🎨 New Custom Themes** — Academic Paper (GB/T 7713 standard) and Trae Blue (Trae IDE documentation style)
+- **🧹 Cleanup** — Removed obsolete files (`debug-load.js`, `configuration.ts`, `file-utils.ts`)
+- **🐛 Fixes** — h4 color consistency, code block border color, print margin width
+
+### v0.1.3
+
+- **🔄 Experimental Scroll Sync** — Bidirectional scroll synchronization between editor and preview panel. Enable via `colaview.scrollSync` setting.
+- Enhanced error handling in extension activation and preview manager initialization
+
 ### v0.1.2
 
-- **🐛 Blockquote Background Fix** — Fixed blockquote background color being overridden by page background in Dark, Light, and Newsprint themes; all 4 built-in themes now correctly display their configured `--blockquote-bg` values
+- **🐛 Blockquote Background Fix** — Fixed blockquote background color being overridden by page background in Dark, Light, and Newsprint themes
 
 ### v0.1.1
 
