@@ -40,16 +40,12 @@ export class PreviewManager {
     private editorScrollDelay = Date.now();
 
     constructor(private context: vscode.ExtensionContext) {
-        try {
-            this.setupEventListeners();
-            console.log('[ColaView] PreviewManager constructor completed successfully');
-        } catch (e) {
-            console.error('[ColaView] PreviewManager constructor failed:', e);
-            throw e;
-        }
+        this.registerActiveEditorListener();
+        this.registerScrollSyncListeners();
+        this.registerConfigurationListener();
     }
 
-    private setupEventListeners(): void {
+    private registerActiveEditorListener(): void {
         try {
             vscode.window.onDidChangeActiveTextEditor(editor => {
                 try {
@@ -60,76 +56,58 @@ export class PreviewManager {
                         }
                     }
                 } catch (e) {
-                    console.error('[ColaView] onDidChangeActiveTextEditor handler error:', e);
+                    console.error('[ColaView] onDidChangeActiveTextEditor error:', e);
                 }
             }, null, this.disposables);
+        } catch (e) {
+            console.error('[ColaView] registerActiveEditorListener failed:', e);
+        }
+    }
 
+    private registerScrollSyncListeners(): void {
+        try {
             vscode.window.onDidChangeTextEditorSelection((event) => {
                 try {
-                    if (!this.isScrollSyncEnabled()) {
-                        return;
-                    }
-                    const textEditor = event.textEditor;
-                    if (Date.now() < this.editorScrollDelay) {
-                        return;
-                    }
-                    if (textEditor.document.languageId !== 'markdown') {
-                        return;
-                    }
-                    if (textEditor.document.uri.toString() !== this.currentUri?.toString()) {
-                        return;
-                    }
+                    if (!this.isScrollSyncEnabled()) { return; }
+                    const editor = event.textEditor;
+                    if (Date.now() < this.editorScrollDelay) { return; }
+                    if (editor.document.languageId !== 'markdown') { return; }
+                    if (editor.document.uri.toString() !== this.currentUri?.toString()) { return; }
 
-                    const topLine = getTopVisibleLine(textEditor);
-                    const bottomLine = getBottomVisibleLine(textEditor);
-
-                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') {
-                        return;
-                    }
+                    const topLine = getTopVisibleLine(editor);
+                    const bottomLine = getBottomVisibleLine(editor);
+                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') { return; }
 
                     const cursorLine = event.selections[0].active.line;
-                    const topRatio = (bottomLine > topLine) 
-                        ? (cursorLine - topLine) / (bottomLine - topLine) 
+                    const topRatio = (bottomLine > topLine)
+                        ? (cursorLine - topLine) / (bottomLine - topLine)
                         : 0.3;
 
                     this.panel?.webview.postMessage({
                         type: 'editorScroll',
                         line: cursorLine,
-                        totalLines: textEditor.document.lineCount,
+                        totalLines: editor.document.lineCount,
                         topRatio: Math.max(0, Math.min(1, topRatio)),
                     });
                 } catch (e) {
-                    console.error('[ColaView] onDidChangeTextEditorSelection handler error:', e);
+                    // silently ignore errors in scroll sync handler
                 }
             }, null, this.disposables);
 
             vscode.window.onDidChangeTextEditorVisibleRanges((event) => {
                 try {
-                    if (!this.isScrollSyncEnabled()) {
-                        return;
-                    }
-                    const textEditor = event.textEditor;
-                    if (Date.now() < this.editorScrollDelay) {
-                        return;
-                    }
-                    if (textEditor.document.languageId !== 'markdown') {
-                        return;
-                    }
-                    if (textEditor.document.uri.toString() !== this.currentUri?.toString()) {
-                        return;
-                    }
+                    if (!this.isScrollSyncEnabled()) { return; }
+                    const editor = event.textEditor;
+                    if (Date.now() < this.editorScrollDelay) { return; }
+                    if (editor.document.languageId !== 'markdown') { return; }
+                    if (editor.document.uri.toString() !== this.currentUri?.toString()) { return; }
 
-                    const totalLines = textEditor.document.lineCount;
-                    if (totalLines <= 1) {
-                        return;
-                    }
+                    const totalLines = editor.document.lineCount;
+                    if (totalLines <= 1) { return; }
 
-                    const topLine = getTopVisibleLine(textEditor);
-                    const bottomLine = getBottomVisibleLine(textEditor);
-
-                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') {
-                        return;
-                    }
+                    const topLine = getTopVisibleLine(editor);
+                    const bottomLine = getBottomVisibleLine(editor);
+                    if (typeof topLine === 'undefined' || typeof bottomLine === 'undefined') { return; }
 
                     let midLine: number;
                     if (topLine === 0) {
@@ -147,21 +125,23 @@ export class PreviewManager {
                         scrollPercent: Math.max(0, Math.min(1, scrollPercent)),
                     });
                 } catch (e) {
-                    console.error('[ColaView] onDidChangeTextEditorVisibleRanges handler error:', e);
-                }
-            }, null, this.disposables);
-
-            vscode.window.onDidChangeConfiguration((event) => {
-                try {
-                    if (event.affectsConfiguration('colaview.scrollSync')) {
-                        console.log('[ColaView] scrollSync setting changed:', this.isScrollSyncEnabled());
-                    }
-                } catch (e) {
-                    console.error('[ColaView] onDidChangeConfiguration handler error:', e);
+                    // silently ignore errors in scroll sync handler
                 }
             }, null, this.disposables);
         } catch (e) {
-            console.error('[ColaView] setupEventListeners failed:', e);
+            console.error('[ColaView] registerScrollSyncListeners failed:', e);
+        }
+    }
+
+    private registerConfigurationListener(): void {
+        try {
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (event.affectsConfiguration('colaview.scrollSync')) {
+                    // config changed, no action needed — will be checked on next scroll event
+                }
+            }, null, this.disposables);
+        } catch (e) {
+            console.error('[ColaView] registerConfigurationListener failed:', e);
         }
     }
 
@@ -205,7 +185,6 @@ export class PreviewManager {
             this.panel.onDidDispose(() => { this.panel = null; }, null, this.disposables);
 
             this.panel.webview.onDidReceiveMessage((msg: { type: string; html?: string; message?: string; name?: string; scrollPercent?: number }) => {
-                console.log('[ColaView] WebView message:', msg.type);
                 switch (msg.type) {
                     case 'ready': {
                         const theme = ThemeManager.getCurrentTheme();
@@ -214,7 +193,6 @@ export class PreviewManager {
                         const isCustom = !builtins.includes(theme);
                         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
                         const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
-                        console.log('[ColaView] Sending init: theme=', theme, 'isCustom=', isCustom, 'markdownLen=', markdown.length);
                         this.panel?.webview.postMessage({
                             type: 'init',
                             markdown,
@@ -228,7 +206,6 @@ export class PreviewManager {
                         break;
                     }
                     case 'exportHTMLResult': {
-                        console.log('[ColaView] exportHTMLResult: htmlLen=', (msg.html || '').length);
                         if (this.exportResolve) {
                             this.exportResolve(msg.html || '');
                             this.exportResolve = null;
@@ -331,14 +308,12 @@ export class PreviewManager {
 
     private updatePreview(document: vscode.TextDocument): void {
         if (!this.panel) return;
-
         const markdown = document.getText();
         const theme = ThemeManager.getCurrentTheme();
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(theme);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
         const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
-
         this.panel.webview.postMessage({
             type: 'update',
             markdown,
@@ -392,13 +367,9 @@ export class PreviewManager {
     }
 
     private handleScrollSync(msg: { scrollPercent: number }): void {
-        const scrollSyncEnabled = vscode.workspace.getConfiguration('colaview').get<boolean>('scrollSync', false);
-        if (!scrollSyncEnabled) {
-            return;
-        }
+        if (!this.isScrollSyncEnabled()) { return; }
 
         const scrollPercent = msg.scrollPercent;
-        
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.uri.toString() !== this.currentUri?.toString()) {
             return;
@@ -406,9 +377,9 @@ export class PreviewManager {
 
         const totalLines = editor.document.lineCount;
         const targetLine = Math.floor(scrollPercent * (totalLines - 1));
-        
+
         this.editorScrollDelay = Date.now() + 500;
-        
+
         const range = new vscode.Range(targetLine, 0, targetLine + 1, 0);
         editor.revealRange(range, vscode.TextEditorRevealType.AtTop);
     }

@@ -38,11 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
         try {
             previewManager.showPreview();
         } catch (e) {
-            console.error('ColaView: autoPreview failed:', e);
+            console.warn('ColaView: autoPreview failed:', e);
         }
     }
 
-    // Sync plugin toggle settings to WebView
     vscode.workspace.onDidChangeConfiguration(e => {
         if (!previewManager) return;
         const cfg = vscode.workspace.getConfiguration('colaview');
@@ -54,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    vscode.window.showInformationMessage('ColaView MD activated');
+    console.log('ColaView: activated');
 }
 
 export function deactivate() {}

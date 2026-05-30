@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.3-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
 
@@ -93,6 +93,7 @@ Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or v
 | `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF engine: `puppeteer` or `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | Auto-open preview for `.md` files |
 | `colaview.customThemesPath` | `string` | `""` | Directory for custom theme CSS files |
+| `colaview.scrollSync` | `boolean` | `false` | **Experimental** — Enable scroll sync between editor and preview |
 
 ## Supported Syntax
 
@@ -165,8 +166,7 @@ src/
 │   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
 │   ├── foundation.css        # Base CSS variables (colors, spacing)
 │   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
-├── config/configuration.ts   # Settings defaults
-└── utils/file-utils.ts       # File I/O helpers
+└── types.ts                  # Shared type definitions
 ```
 
 ## Development
@@ -194,9 +194,21 @@ The project uses **esbuild** for bundling — all dependencies (including `@byte
 
 ## Changelog
 
+### v1.5.3-beta.0
+
+- **🔄 Experimental Scroll Sync** — Bidirectional scroll synchronization between editor and preview panel. Enable via `colaview.scrollSync` setting.
+- **🎨 New Custom Themes** — Swiss Design, Trae Blue, Forest Ink, and Academic Paper themes available in `.themes/` directory.
+- **🐛 Style Fixes** — Fixed list indentation, h4 color inconsistency, and print margin width in exports.
+- **⚡ Code Optimization** — Removed dead code, optimized debug logging, fixed test imports.
+
+### v0.1.3
+
+- Enhanced error handling in extension activation and preview manager initialization
+- Improved scroll sync algorithm with relative position mapping and debouncing
+
 ### v0.1.2
 
-- **🐛 Blockquote Background Fix** — Fixed blockquote background color being overridden by page background in Dark, Light, and Newsprint themes; all 4 built-in themes now correctly display their configured `--blockquote-bg` values
+- **🐛 Blockquote Background Fix** — Fixed blockquote background color being overridden by page background in Dark, Light, and Newsprint themes
 
 ### v0.1.1
 

@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.1.3-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 
@@ -93,6 +93,7 @@ my-project/
 | `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF 引擎：`puppeteer` 或 `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | 打开 `.md` 文件时自动显示预览 |
 | `colaview.customThemesPath` | `string` | `""` | 自定义主题 CSS 目录路径 |
+| `colaview.scrollSync` | `boolean` | `false` | **实验性功能** — 启用编辑器与预览面板的滚动同步 |
 
 ## 支持的语法
 
@@ -165,8 +166,7 @@ src/
 │   ├── theme-manager.ts      # 主题加载、切换、.themes/ 目录扫描、导入
 │   ├── foundation.css        # 基础 CSS 变量层（颜色、间距）
 │   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
-├── config/configuration.ts   # 设置默认值
-└── utils/file-utils.ts       # 文件 I/O 工具
+└── types.ts                  # 共享类型定义
 ```
 
 ## 开发
@@ -194,9 +194,21 @@ npm run package
 
 ## 更新日志
 
+### v1.5.3-beta.0
+
+- **🔄 实验性滚动同步** — 编辑器与预览面板双向滚动同步。通过 `colaview.scrollSync` 设置启用。
+- **🎨 新增自定义主题** — `.themes/` 目录新增 Swiss Design、Trae Blue、Forest Ink、Academic Paper 四套主题。
+- **🐛 样式修复** — 修复导出时列表缩进、h4 颜色不一致、打印页边距过宽等问题。
+- **⚡ 代码优化** — 移除死代码、优化调试日志、修复测试文件过期引用。
+
+### v0.1.3
+
+- 增强扩展激活和预览管理器初始化时的错误处理
+- 改进滚动同步算法，支持相对位置映射和防抖
+
 ### v0.1.2
 
-- **🐛 引用块背景色修复** — 修复 Dark、Light、Newsprint 主题下 blockquote 背景色被页面背景色覆盖的问题，4 套内置主题现在均正确显示各自配置的 `--blockquote-bg` 背景色
+- **🐛 引用块背景色修复** — 修复 Dark、Light、Newsprint 主题下 blockquote 背景色被页面背景色覆盖的问题
 
 ### v0.1.1
 
