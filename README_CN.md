@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.1-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
 

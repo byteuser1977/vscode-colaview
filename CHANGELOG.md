@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2025-06-04
+
+### Fixed
+- Fixed custom theme background color not applied to preview page — CSS variable naming mismatch between `index.html` inline styles (`--color-*`) and custom theme / `colamd.css` conventions (`--*-*`); unified all inline style variable references to use `colamd.css`-compatible names with fallback chain
+
 ## [0.2.0] - 2025-05-30
 
 ### Added

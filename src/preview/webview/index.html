@@ -12,8 +12,8 @@
             padding: 0;
             overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--color-bg, #fff) !important;
-            color: var(--color-text, #24292f) !important;
+            background: var(--bg-color, var(--color-bg, #fff)) !important;
+            color: var(--text-color, var(--color-text, #24292f)) !important;
         }
         #editor {
             max-width: 780px;
@@ -36,9 +36,9 @@
             position: fixed;
             z-index: 9999;
             min-width: 180px;
-            background: var(--color-bg, #fff);
-            color: var(--color-text, #24292f);
-            border: 1px solid var(--color-border, #d0d7de);
+            background: var(--bg-color, var(--color-bg, #fff));
+            color: var(--text-color, var(--color-text, #24292f));
+            border: 1px solid var(--border-color, var(--color-border, #d0d7de));
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             padding: 4px 0;
@@ -53,11 +53,11 @@
             white-space: nowrap;
         }
         .ctx-menu-item:hover {
-            background: var(--color-accent-subtle, #ddf4ff);
-            color: var(--color-accent, #0969da);
+            background: var(--accent-light, var(--color-accent-light, #ddf4ff));
+            color: var(--link-color, var(--color-accent, #0969da));
         }
         .ctx-menu-disabled {
-            color: var(--color-text-muted, #8b949e);
+            color: var(--text-muted, var(--color-text-muted, #8b949e));
             pointer-events: none;
         }
         .ctx-menu-active {
@@ -71,7 +71,7 @@
         .ctx-menu-separator {
             height: 1px;
             margin: 4px 0;
-            background: var(--color-border, #d0d7de);
+            background: var(--border-color, var(--color-border, #d0d7de));
         }
         .ctx-menu-has-submenu {
             padding-right: 28px;
@@ -80,16 +80,16 @@
             content: '▸';
             position: absolute;
             right: 10px;
-            color: var(--color-text-muted, #8b949e);
+            color: var(--text-muted, var(--color-text-muted, #8b949e));
         }
         .ctx-menu-submenu {
             position: absolute;
             top: -4px;
             left: 100%;
             min-width: 160px;
-            background: var(--color-bg, #fff);
-            color: var(--color-text, #24292f);
-            border: 1px solid var(--color-border, #d0d7de);
+            background: var(--bg-color, var(--color-bg, #fff));
+            color: var(--text-color, var(--color-text, #24292f));
+            border: 1px solid var(--border-color, var(--color-border, #d0d7de));
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             padding: 4px 0;
