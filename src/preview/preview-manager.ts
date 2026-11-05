@@ -329,7 +329,7 @@ export class PreviewManager {
         if (!this.panel) {
             throw new Error('No preview panel is open. Please open a preview first.');
         }
-        return new Promise<string>((resolve) => {
+        const html = await new Promise<string>((resolve) => {
             this.exportResolve = resolve;
             const title = this.currentUri
                 ? path.basename(this.currentUri.fsPath, '.md')
@@ -342,6 +342,26 @@ export class PreviewManager {
                 }
             }, 30000);
         });
+        return this.patchExportHTML(html);
+    }
+
+    /**
+     * 导出 HTML 后处理：
+     * colamd.css 末尾带一条 Electron 桌面版专用的打印规则
+     *   `@media print { body > :not(#editor-region), ... { display: none !important } }`
+     * 它假定打印时 body 下只保留 #editor-region（ColaMD 桌面版结构），而我们的导出
+     * HTML 是 <body><article class="colamd-document">，没有 #editor-region ——
+     * article 会被整体隐藏，PDF/浏览器打印全部空白（仅剩一页空纸）。
+     *
+     * 覆盖规则用 :not(#_) 抬高特异性：原规则含 ID（:not(#editor-region) = 1,0,1），
+     * 普通 class 选择器（0,1,2）同带 !important 时也输给它；:not(#_) 恒真但贡献
+     * ID 特异性，得到 (1,1,2)，稳定压制原规则。
+     * HTML 导出在浏览器中 Ctrl+P 同样受益。
+     */
+    private patchExportHTML(html: string): string {
+        if (!html) return html;
+        const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
+        return html.replace('</head>', PRINT_FIX + '\n</head>');
     }
 
     sendTheme(theme: string): void {
@@ -397,9 +417,6 @@ export class PreviewManager {
         const appJsPath = vscode.Uri.file(path.join(webviewDir, 'app.js'));
         const appJsUri = this.panel!.webview.asWebviewUri(appJsPath);
 
-        const colamdCssPath = vscode.Uri.file(path.join(webviewDir, 'colamd.css'));
-        const colamdCssUri = this.panel!.webview.asWebviewUri(colamdCssPath);
-
         const nonce = getNonce();
 
         const indexPath = path.join(webviewDir, 'index.html');
@@ -407,12 +424,18 @@ export class PreviewManager {
 
         html = html.replace(
             /<meta http-equiv="Content-Security-Policy"[^>]*>/,
-            `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdn.jsdelivr.net vscode-webview-resource:; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net vscode-webview-resource: data:; img-src file: data: https: vscode-webview-resource:; connect-src https: vscode-webview-resource:;">`
+            `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' vscode-webview-resource:; script-src 'nonce-${nonce}' vscode-webview-resource:; font-src vscode-webview-resource: data:; img-src file: data: https: vscode-webview-resource:; connect-src https: vscode-webview-resource:;">`
         );
 
+        // colamd.css 必须内联为 <style>，不能用 <link>：
+        // 跨源 <link> 的 cssRules 对 CSSOM 不可访问（SecurityError），buildExportHTML 的
+        // collectExportStyles() 会静默丢掉全部渲染样式（1.43MB → 15KB），导出的 HTML/PDF
+        // 就没有排版和 KaTeX 字体了。内联样式对 CSSOM 完全可读，导出管线才能完整带走样式。
+        const colamdCss = fs.readFileSync(path.join(webviewDir, 'colamd.css'), 'utf-8')
+            .replace(/<\/style/gi, '<\\/style'); // 防 css 内容意外闭合 style 标签
         html = html.replace(
-            'href="colamd.css" id="colamd-css"',
-            `href="${colamdCssUri}" id="colamd-css"`
+            /<link rel="stylesheet" href="colamd\.css" id="colamd-css">/,
+            `<style id="colamd-css">${colamdCss}</style>`
         );
 
         html = html.replace(
