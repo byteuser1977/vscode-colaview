@@ -54,7 +54,6 @@ async function build() {
 function copyResources() {
     const copies = [
         { src: 'src/preview/webview/index.html', dst: 'out/preview/webview/index.html' },
-        { src: 'src/themes/foundation.css', dst: 'out/themes/foundation.css' },
         { src: 'src/themes/built-in', dst: 'out/themes/built-in' },
     ];
 

@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-11-05
+
+### Added
+- Added **9 new built-in themes**: Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight — expanding from 4 to 12 total built-in themes
+- Added local **TypeScript type declarations** (`src/types/colamd-renderer.d.ts`) for `@bytechain.cn/colamd@2.7.9`, since the npm package does not publish `.d.ts` files
+
+### Changed
+- **Engine upgrade: ColaMD 2.7.9** — Migrated from Milkdown/ProseMirror to **CodeMirror 6** rendering engine. Source buffer is now the single source of truth with zero serialization loss on export.
+- **Async HTML export** — `buildExportHTML()` is now asynchronous. The WebView automatically waits for Mermaid diagrams and KaTeX fonts to finish rendering before producing the final standalone HTML.
+- **12 built-in themes** total, up from 4. Default theme changed from `"light"` to `"elegant"`.
+- **DOM structure changed** — Preview container uses `.cm-editor` / `.cm-scroller` / `.cm-content` (CM6) instead of `.ProseMirror`. Scroll sync target updated to `.cm-scroller`.
+- **CSP relaxed** — `style-src 'unsafe-inline'` and `script-src 'unsafe-inline'` are now required (CodeMirror 6 dynamic styles + esbuild IIFE bundle). Nonce-based CSP removed.
+- **Build system** — The WebView bundle now includes the full ColaMD 2.7.9 rendering engine (CM6 + Mermaid + KaTeX). WebView bundle size increased from ~50KB to ~3.4MB unminified (gzip ~400KB). Extension side remains small (~30KB).
+
+### Removed
+- **Removed Newsprint theme** — Not available in ColaMD 2.7.9. Users who had `colaview.theme: "newsprint"` will fall back to the default ("elegant").
+- **Removed runtime plugin toggle** — `colaview.plugins.math` and `colaview.plugins.mermaid` settings are retained for backward compatibility but no longer have any effect, since math and Mermaid are integral parts of the ColaMD 2.7.9 engine.
+- **Removed local `colamd-renderer.js` copy** — The WebView now imports ColaMD directly from the npm package via esbuild bundling.
+
+### Fixed
+- Fixed scroll sync listening to wrong DOM node — CM6 uses `.cm-scroller` for scrolling instead of the container `#editor` element
+
+### Files Changed
+- `package.json` — Bump `@bytechain.cn/colamd` from `^1.5.2` to `^2.7.9`, update theme enum, change default theme
+- `src/types/colamd-renderer.d.ts` — New local type declarations
+- `src/themes/theme-manager.ts` — Expand `BUILTIN_THEMES` to 12, update `THEME_CLASS_MAP`
+- `src/themes/built-in/*.css` — 9 new theme CSS files
+- `src/preview/webview/app.ts` — Complete rewrite for CM6 API
+- `src/preview/webview/index.html` — CM6 DOM styles, hide cursor/selection, default white-space:pre-wrap
+- `src/preview/preview-manager.ts` — Fix scrollSync message type
+- `src/preview/webview/colamd-renderer.js` — Deleted (old Milkdown renderer copy)
+
+---
+
 ## [0.2.0] - 2025-05-30
 
 ### Added

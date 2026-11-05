@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",
@@ -86,12 +86,20 @@
       "properties": {
         "colaview.theme": {
           "type": "string",
-          "default": "light",
+          "default": "elegant",
           "enum": [
             "light",
             "dark",
             "elegant",
-            "newsprint"
+            "sepia",
+            "notion",
+            "bear",
+            "writer",
+            "solarized-dark",
+            "nord",
+            "gruvbox",
+            "dracula",
+            "midnight"
           ],
           "description": "Visual theme for preview and export"
         },
@@ -142,7 +150,7 @@
     "package": "vsce package"
   },
   "dependencies": {
-    "@bytechain.cn/colamd": "^1.5.2",
+    "@bytechain.cn/colamd": "^2.7.9",
     "mermaid": "^11.15.0",
     "puppeteer-core": "^25.1.0"
   },

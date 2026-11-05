@@ -192,7 +192,7 @@ export class PreviewManager {
                         const builtins = ThemeManager.getBuiltinThemes();
                         const isCustom = !builtins.includes(theme);
                         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
-                        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
+                        const themeCSS = ThemeManager.loadThemeCSS(theme);
                         this.panel?.webview.postMessage({
                             type: 'init',
                             markdown,
@@ -240,7 +240,9 @@ export class PreviewManager {
                         break;
                     }
                     case 'scrollSync': {
-                        this.handleScrollSync(msg);
+                        if (msg.scrollPercent !== undefined) {
+                            this.handleScrollSync({ scrollPercent: msg.scrollPercent });
+                        }
                         break;
                     }
                 }
@@ -300,7 +302,7 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(name);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
-        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(name);
+        const themeCSS = ThemeManager.loadThemeCSS(name);
         this.panel?.webview.postMessage({ type: 'updateTheme', theme: name, customCSS, themeCSS });
         const list = ThemeManager.getThemeList();
         this.panel?.webview.postMessage({ type: 'themeList', ...list });
@@ -313,7 +315,7 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(theme);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(theme) : undefined;
-        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(theme);
+        const themeCSS = ThemeManager.loadThemeCSS(theme);
         this.panel.webview.postMessage({
             type: 'update',
             markdown,
@@ -329,7 +331,10 @@ export class PreviewManager {
         }
         return new Promise<string>((resolve) => {
             this.exportResolve = resolve;
-            this.panel!.webview.postMessage({ type: 'exportHTML' });
+            const title = this.currentUri
+                ? path.basename(this.currentUri.fsPath, '.md')
+                : undefined;
+            this.panel!.webview.postMessage({ type: 'exportHTML', title });
             setTimeout(() => {
                 if (this.exportResolve) {
                     this.exportResolve('');
@@ -349,7 +354,7 @@ export class PreviewManager {
         const builtins = ThemeManager.getBuiltinThemes();
         const isCustom = !builtins.includes(name);
         const customCSS = isCustom ? ThemeManager.loadThemeCSS(name) : undefined;
-        const themeCSS = ThemeManager.loadFoundationCSS() + ThemeManager.loadThemeCSS(name);
+        const themeCSS = ThemeManager.loadThemeCSS(name);
         this.panel.webview.postMessage({ type: 'updateTheme', theme: name, customCSS, themeCSS });
         const list = ThemeManager.getThemeList();
         this.panel.webview.postMessage({ type: 'themeList', ...list });

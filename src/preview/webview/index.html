@@ -3,32 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://cdn.jsdelivr.net vscode-webview-resource:; script-src 'unsafe-inline' vscode-webview-resource:; font-src https://cdn.jsdelivr.net vscode-webview-resource: data:; img-src file: data: vscode-webview-resource: https:; connect-src https: vscode-webview-resource:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' vscode-webview-resource:; script-src 'unsafe-inline' vscode-webview-resource:; font-src vscode-webview-resource: data:; img-src file: data: vscode-webview-resource: https:; connect-src https: vscode-webview-resource:;">
     <link rel="stylesheet" href="colamd.css" id="colamd-css">
+    <!-- 变量名对齐 ColaMD 2.7.9 主题契约: --bg-color / --text-color / --border-color 等 -->
     <style>
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--color-bg, #fff) !important;
-            color: var(--color-text, #24292f) !important;
+            background: var(--bg-color, #fff) !important;
+            color: var(--text-color, #24292f) !important;
         }
+        /* CodeMirror 6 编辑器容器 */
         #editor {
-            max-width: 780px;
-            margin: 0 auto;
-            padding: 20px 40px 40px;
             min-height: 100vh;
         }
-        #editor > :first-child { margin-top: 0; }
-        /* Read-only mode: hide cursor, disable selection highlights */
-        .colamd-readonly .ProseMirror {
-            cursor: default;
+        /* CodeMirror 焦点轮廓去除 */
+        #editor.cm-editor.cm-focused {
             outline: none;
         }
-        .colamd-readonly .ProseMirror .ProseMirror-selectednode {
-            outline: none;
+        #editor .cm-content {
+            padding: 20px 40px 40px;
+            max-width: 780px;
+            margin: 0 auto;
+            min-height: calc(100vh - 60px);
+            cursor: default;
+        }
+        #editor .cm-editor.cm-focused > .cm-scroller > .cm-content,
+        #editor .cm-editor.cm-focused > .cm-scroller > .cm-gutters {
+            cursor: default;
+        }
+        /* 隐藏光标和选区高亮（只读预览） */
+        #editor .cm-cursor,
+        #editor .cm-selectionBackground,
+        #editor.cm-focused .cm-selectionBackground,
+        #editor .cm-content ::selection {
+            opacity: 0 !important;
+        }
+        /* CodeMirror 6 默认不换行，Markdown 预览必须换行 */
+        #editor .cm-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        /* 滚动容器 */
+        #editor .cm-scroller {
+            overflow: auto;
         }
 
         /* ── Context Menu ── */
@@ -36,9 +56,9 @@
             position: fixed;
             z-index: 9999;
             min-width: 180px;
-            background: var(--color-bg, #fff);
-            color: var(--color-text, #24292f);
-            border: 1px solid var(--color-border, #d0d7de);
+            background: var(--bg-color, #fff);
+            color: var(--text-color, #24292f);
+            border: 1px solid var(--border-color, #d0d7de);
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             padding: 4px 0;
@@ -53,11 +73,11 @@
             white-space: nowrap;
         }
         .ctx-menu-item:hover {
-            background: var(--color-accent-subtle, #ddf4ff);
-            color: var(--color-accent, #0969da);
+            background: var(--code-bg, rgba(0,0,0,0.06));
+            color: var(--link-color, #0969da);
         }
         .ctx-menu-disabled {
-            color: var(--color-text-muted, #8b949e);
+            color: var(--text-muted, #8b949e);
             pointer-events: none;
         }
         .ctx-menu-active {
@@ -71,7 +91,7 @@
         .ctx-menu-separator {
             height: 1px;
             margin: 4px 0;
-            background: var(--color-border, #d0d7de);
+            background: var(--border-color, #d0d7de);
         }
         .ctx-menu-has-submenu {
             padding-right: 28px;
@@ -80,16 +100,16 @@
             content: '▸';
             position: absolute;
             right: 10px;
-            color: var(--color-text-muted, #8b949e);
+            color: var(--text-muted, #8b949e);
         }
         .ctx-menu-submenu {
             position: absolute;
             top: -4px;
             left: 100%;
             min-width: 160px;
-            background: var(--color-bg, #fff);
-            color: var(--color-text, #24292f);
-            border: 1px solid var(--color-border, #d0d7de);
+            background: var(--bg-color, #fff);
+            color: var(--text-color, #24292f);
+            border: 1px solid var(--border-color, #d0d7de);
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.12);
             padding: 4px 0;

@@ -1,5 +1,63 @@
 # Release Notes
 
+## v0.3.0 (2026-11-05)
+
+### 🔧 Engine Upgrade — ColaMD 2.7.9 (CodeMirror 6)
+
+This release upgrades the entire rendering engine from Milkdown/ProseMirror to **CodeMirror 6** via `@bytechain.cn/colamd@2.7.9`. This is a major version jump (from `^1.5.2` to `^2.7.9`) with fundamentally different architecture:
+
+**Source Buffer as Single Source of Truth** — Unlike ProseMirror's document model which could silently serialize Markdown back, CodeMirror 6 treats the raw source buffer as the canonical state. Export operations use buffer content directly, guaranteeing zero serialization loss.
+
+**Async Export Pipeline** — `buildExportHTML()` now returns a Promise. Internally it calls `ensureAllPluginsRendered()` first, waiting for Mermaid diagrams and KaTeX fonts to finish before producing the final HTML. The WebView → extension handshake remains identical (message passing), but the WebView side now properly awaits completion.
+
+**New CM6 DOM Structure** — The preview container changed from `.ProseMirror` to `.cm-editor` / `.cm-scroller` / `.cm-content`. Scroll sync had to be retargeted from `#editor` to `.cm-scroller`.
+
+### 🎨 12 Built-in Themes
+
+| Theme | Style |
+|-------|-------|
+| **Light** | Clean white, blue accents |
+| **Dark** | GitHub Dark palette |
+| **Elegant** *(new default)* | Warm serif, beige tones |
+| **Sepia** | Warm sepia, paper texture |
+| **Notion** | Not.so MCP minimalism |
+| **Bear** | Bear.app note style |
+| **Writer** | Monospace-friendly |
+| **Solarized Dark** | Ethan Schoonover palette |
+| **Nord** | Arctic blue |
+| **Gruvbox** | Retro 80s terminal |
+| **Dracula** | Zeno Rocha vibrant dark |
+| **Midnight** | Deep navy + gold |
+
+*Newsprint was removed* — it is not part of ColaMD 2.7.9. Users with `colaview.theme: "newsprint"` will get the default ("elegant").
+
+### 🗑️ Plugin Toggle Deprecated
+
+`colaview.plugins.math` and `colaview.plugins.mermaid` are now **no-ops**. Math and Mermaid are integral parts of the CodeMirror 6 engine — they cannot be independently disabled. The settings remain in `package.json` for backward compatibility but have no effect at runtime.
+
+### 📦 Build Size
+
+| | v0.2.0 | v0.3.0 |
+|--|-------|-------|
+| Extension (`out/extension.js`) | ~28KB | ~30KB |
+| WebView (`out/preview/webview/app.js`) | ~50KB | ~3.4MB |
+| WebView (gzip) | ~15KB | ~400KB |
+
+The WebView bundle grew significantly because it now includes the full CodeMirror 6 + Mermaid + KaTeX rendering engine inlined via esbuild IIFE. The extension side stays lean.
+
+### ⚠️ Security Model Change
+
+CSP was relaxed from nonce-based to `'unsafe-inline'` for both `style-src` and `script-src`. This is required by CodeMirror 6 (dynamic inline styles) and esbuild IIFE format. Sandbox isolation via `asWebviewUri()` remains intact.
+
+### 📄 KaTeX Fonts
+
+No more font resource path management headaches. KaTeX fonts are base64-encoded inside `colamd.css` — they work in WebView preview, HTML export, and PDF export without any additional configuration.
+
+### Files Changed
+10 files changed — 2,438 insertions, 912 deletions
+
+---
+
 ## v0.2.0 (2025-05-30)
 
 ### 🏗️ Architecture Overhaul

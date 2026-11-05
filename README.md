@@ -3,22 +3,22 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
 
-Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (Milkdown-based WYSIWYG).
+Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
 ## Features
 
-- **WYSIWYG Preview** — Milkdown-powered read-only editor renders Markdown as rich text in real-time
-- **Math Formulas** — KaTeX integration for inline `$...$` and display `$$...$$` expressions
+- **WYSIWYG Preview** — CodeMirror 6 powered read-only editor renders Markdown as rich text in real-time, with source buffer as the single source of truth
+- **Math Formulas** — KaTeX integration for inline `$...$` and display `$$...$$` expressions (fonts inlined via base64)
 - **Mermaid Diagrams** — 17+ chart types: flowcharts, sequence, class, state, ER, Gantt, mind maps, etc.
 - **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
-- **HTML Export** — Standalone `.html` with embedded CSS, zero-dependency sharing
-- **4 Built-in Themes** — Light, Dark, Elegant, Newsprint + 2 custom themes (Academic Paper, Trae Blue)
+- **HTML Export** — Standalone `.html` with embedded CSS and fonts, zero-dependency sharing
+- **12 Built-in Themes** — Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight
 - **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
 - **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
-- **Plugin Toggle** — Enable/disable math and mermaid rendering via settings, changes sync to preview in real-time
 - **Live Sync** — 150ms debounced update while editing, experimental scroll sync between editor and preview
+- **Source Buffer Fidelity** — Raw Markdown bytes are preserved exactly; export uses the buffer content directly, no serialization loss
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](http
 | `ColaView MD: Show Preview` | Open or focus the preview panel |
 | `ColaView MD: Export to PDF...` | Export current file as A4 PDF |
 | `ColaView MD: Export to HTML...` | Export as standalone HTML |
-| `ColaView MD: Switch Preview Theme...` | Choose from Light / Dark / Elegant / Newsprint |
+| `ColaView MD: Switch Preview Theme...` | Choose from 12 built-in + custom themes |
 | `ColaView MD: Import Custom Theme...` | Load a `.css` file as custom theme |
 
 ### Right-click Context Menu (in Preview)
@@ -59,7 +59,15 @@ When the preview is open, right-click anywhere to access:
 | **Light** | Clean white, blue accents | General use, documentation |
 | **Dark** | GitHub Dark palette | Night coding |
 | **Elegant** | Warm serif, beige tones | Academic papers, long-form |
-| **Newsprint** | Serif, print texture | Print preparation |
+| **Sepia** | Warm sepia, paper texture | Extended reading, low-eye-strain |
+| **Notion** | Not.so MCP | Notion-like clean minimalism |
+| **Bear** | Bear.app style | Note-taking, casual writing |
+| **Writer** | Monospace-friendly | Technical writing, code-heavy docs |
+| **Solarized Dark** | Ethan Schoonover palette | Low-contrast dark coding |
+| **Nord** | Arctic blue palette | Calm, focused writing |
+| **Gruvbox** | Retro 80s terminal | Nostalgia, high-contrast |
+| **Dracula** | Zeno Rocha palette | Vibrant dark theme |
+| **Midnight** | Deep navy, gold accents | Night writing, premium feel |
 
 ### Custom Themes
 
@@ -83,7 +91,7 @@ Custom themes are automatically detected and appear alongside built-in themes in
 Switch via command palette or settings:
 
 ```json
-{ "colaview.theme": "dark" }
+{ "colaview.theme": "nord" }
 ```
 
 Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or via right-click menu → "Import Theme..."
@@ -92,13 +100,15 @@ Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or v
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `colaview.theme` | `string` | `"light"` | Preview theme: `light`, `dark`, `elegant`, `newsprint`, or any custom theme name |
-| `colaview.plugins.math` | `boolean` | `true` | Enable KaTeX math rendering |
-| `colaview.plugins.mermaid` | `boolean` | `true` | Enable Mermaid diagram rendering |
+| `colaview.theme` | `string` | `"elegant"` | Preview theme: `light`, `dark`, `elegant`, `sepia`, `notion`, `bear`, `writer`, `solarized-dark`, `nord`, `gruvbox`, `dracula`, `midnight`, or any custom theme name |
+| `colaview.plugins.math` | `boolean` | `true` | *(Deprecated, always-on since v0.3.0)* KaTeX is built into the ColaMD engine and cannot be disabled |
+| `colaview.plugins.mermaid` | `boolean` | `true` | *(Deprecated, always-on since v0.3.0)* Mermaid is built into the ColaMD engine and cannot be disabled |
 | `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF engine: `puppeteer` or `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | Auto-open preview for `.md` files |
 | `colaview.customThemesPath` | `string` | `""` | Directory for custom theme CSS files |
 | `colaview.scrollSync` | `boolean` | `false` | **Experimental** — Enable scroll sync between editor and preview |
+
+> **Note on plugin settings:** Since v0.3.0, math and mermaid rendering are integral parts of the CodeMirror 6 based ColaMD engine and are always enabled. The `colaview.plugins.math` and `colaview.plugins.mermaid` settings are retained for backward compatibility but no longer have any effect.
 
 ## Supported Syntax
 
@@ -133,22 +143,22 @@ Supports: flowchart, sequence, class, state, ER, journey, pie, Gantt, gitGraph, 
 ```
 ┌─────────────┐     postMessage      ┌──────────────────┐
 │  Extension   │ ◄──────────────────► │    WebView        │
-│  (Node.js)   │                      │  (Milkdown/       │
-│              │   raw markdown ──►   │   ColaMD editor)  │
+│  (Node.js)   │                      │  (CodeMirror 6/  │
+│              │   raw markdown ──►   │   ColaMD renderer)│
 │  ThemeManager│   theme/css ──►      │                   │
-│  Exporters   │   ◄── rendered HTML  │  Read-only WYSIWYG│
-│              │                      │  + Context Menu   │
+│  Exporters   │   ◄── complete HTML  │  Read-only rich   │
+│              │                      │  preview + Menu  │
 └─────────────┘                      └──────────────────┘
 ```
 
-**Key design:** The extension sends raw Markdown to the WebView, where Milkdown (via ColaMD) renders it as a read-only WYSIWYG editor. For exports, the WebView returns the rendered HTML back to the extension. The WebView also hosts a right-click context menu for quick access to export and theme functions.
+**Key design:** The extension sends raw Markdown to the WebView, where ColaMD (CodeMirror 6 based) renders it as a read-only rich preview. The source buffer is the single source of truth — no serialization loss on export. For exports, the WebView asynchronously builds a complete standalone HTML (including KaTeX fonts, Mermaid SVGs, and theme CSS) and returns it to the extension.
 
 ### Security Model
 
-The WebView uses a strict Content-Security-Policy (CSP) with nonce-based script loading:
+The WebView uses a strict Content-Security-Policy (CSP):
 
-1. Extension generates a random `nonce` value per panel creation
-2. CSP allows only scripts matching that specific `nonce`
+1. `style-src 'unsafe-inline'` is required for CodeMirror 6's dynamic styling and KaTeX's inline fonts
+2. `script-src 'unsafe-inline'` is required for esbuild's IIFE bundle format
 3. All resource URIs are resolved through `webview.asWebviewUri()` for sandbox isolation
 4. This prevents XSS injection even if markdown content contains malicious scripts
 
@@ -159,19 +169,19 @@ src/
 ├── extension.ts              # Entry point (activate/deactivate), error isolation
 ├── commands/commands.ts      # Command registration (showPreview, exportHTML, exportPDF, etc.)
 ├── preview/
-│   ├── preview-manager.ts    # WebView lifecycle, nonce CSP, message handling, debounce sync
+│   ├── preview-manager.ts    # WebView lifecycle, message handling, debounce sync
 │   └── webview/
 │       ├── index.html        # WebView template + context menu styles
-│       └── app.ts            # Milkdown/ColaMD init + context menu logic
+│       └── app.ts            # ColaMD (CM6) init + context menu + scroll sync
 ├── export/
 │   ├── pdf-exporter.ts       # Puppeteer PDF generation (A4, print background)
-│   ├── html-exporter.ts      # Standalone HTML export (embedded CSS)
-│   └── css-collector.ts      # CSS variable extraction for export documents
+│   └── html-exporter.ts      # Standalone HTML export (embedded CSS)
 ├── themes/
 │   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
 │   ├── foundation.css        # Base CSS variables (colors, spacing)
-│   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
-└── types.ts                  # Shared type definitions
+│   └── built-in/             # 12 built-in themes (light.css, dark.css, elegant.css, sepia.css, ...)
+└── types/
+    └── colamd-renderer.d.ts  # Local type declarations for ColaMD 2.7.9 npm package
 ```
 
 ## Development
@@ -182,12 +192,12 @@ cd vscode-colaview
 npm install
 
 # Build (esbuild bundles all deps into out/)
-npm run compile
+npm run build
 
 # Watch mode
 npm run watch
 
-# Package .vsix (~206KB, no node_modules needed)
+# Package .vsix
 npm run package
 
 # Debug: press F5 in VS Code to launch Extension Development Host
@@ -195,11 +205,22 @@ npm run package
 
 ### Build System
 
-The project uses **esbuild** for bundling — all dependencies (including `@bytechain.cn/colamd`, `katex`, `mermaid`, `puppeteer`) are inlined into `out/extension.js`. Resource files (CSS, WebView HTML/JS) are copied to `out/` during build. The resulting VSIX is ~206KB with zero external dependencies.
+The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.9 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML) are copied to `out/` during build.
 
 ## Changelog
 
-### v0.2.0 (Current)
+### v0.3.0 (Current)
+
+- **🔧 Engine Upgrade — ColaMD 2.7.9 (CodeMirror 6)** — Migrated from Milkdown/ProseMirror to CodeMirror 6. Source buffer is now the single source of truth with zero serialization loss on export.
+- **🎨 12 Built-in Themes** — Expanded from 4 to 12 themes: Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight. Default theme changed to Elegant.
+- **📤 Async HTML Export** — `buildExportHTML()` is now asynchronous, automatically waits for Mermaid diagrams and KaTeX fonts to render before producing the final HTML.
+- **🗑️ Removed Plugin Toggle** — Math and Mermaid are now integral to the ColaMD engine; `colaview.plugins.math` and `colaview.plugins.mermaid` settings are no longer functional.
+- **📰 Removed Newsprint Theme** — Newsprint is not available in ColaMD 2.7.9.
+- **🔄 DOM Structure Changed** — The preview container uses `.cm-editor` / `.cm-scroller` / `.cm-content` instead of `.ProseMirror`. Scroll sync target updated to `.cm-scroller`.
+- **📦 Dependency Bump** — `@bytechain.cn/colamd` upgraded from `^1.5.2` to `^2.7.9`. TypeScript type declarations added locally since 2.7.9 npm package does not publish `.d.ts` files.
+- **🖼️ KaTeX Fonts Inlined** — KaTeX fonts are base64-encoded inside `colamd.css`, no additional resource paths needed for PDF export.
+
+### v0.2.0
 
 - **🏗️ Architecture Overhaul** — Error-isolated activation, refactored PreviewManager, runtime plugin toggle sync for math/mermaid settings
 - **🖱️ Right-Click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — directly in the preview panel

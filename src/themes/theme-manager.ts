@@ -3,7 +3,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const BUILTIN_THEMES = ['light', 'dark', 'elegant', 'newsprint'] as const;
+const BUILTIN_THEMES = [
+    'light', 'dark', 'elegant', 'sepia', 'notion', 'bear',
+    'writer', 'solarized-dark', 'nord', 'gruvbox', 'dracula', 'midnight'
+] as const;
 type ThemeName = typeof BUILTIN_THEMES[number];
 
 const customThemeCache = new Map<string, string>();
@@ -12,7 +15,15 @@ const THEME_CLASS_MAP: Record<string, string> = {
     light: 'theme-light',
     dark: 'theme-dark',
     elegant: 'theme-elegant',
-    newsprint: 'theme-newsprint',
+    sepia: 'theme-sepia',
+    notion: 'theme-notion',
+    bear: 'theme-bear',
+    writer: 'theme-writer',
+    'solarized-dark': 'theme-solarized-dark',
+    nord: 'theme-nord',
+    gruvbox: 'theme-gruvbox',
+    dracula: 'theme-dracula',
+    midnight: 'theme-midnight',
 };
 
 /**
@@ -41,7 +52,7 @@ export class ThemeManager {
 
     /** 获取当前激活的主题名称 */
     static getCurrentTheme(): string {
-        return vscode.workspace.getConfiguration('colaview').get('theme', 'light');
+        return vscode.workspace.getConfiguration('colaview').get('theme', 'elegant');
     }
 
     /** 获取主题对应的 CSS class */
@@ -129,17 +140,6 @@ export class ThemeManager {
             if (fs.existsSync(cssPath)) {
                 return fs.readFileSync(cssPath, 'utf-8');
             }
-        }
-        return '';
-    }
-
-    /** 获取 foundation.css 基础变量层 */
-    static loadFoundationCSS(): string {
-        const cssPath = path.join(
-            getResDir(this.context, 'themes'), 'foundation.css'
-        );
-        if (fs.existsSync(cssPath)) {
-            return fs.readFileSync(cssPath, 'utf-8');
         }
         return '';
     }

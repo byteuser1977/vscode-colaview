@@ -3,22 +3,22 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
 
-VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（Milkdown 所见即所得）。
+VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
 ## 功能特性
 
-- **所见即所得预览** — 基于 Milkdown 的只读编辑器，实时渲染 Markdown 富文本
-- **数学公式** — KaTeX 集成，支持行内 `$...$` 和块级 `$$...$$` 公式
+- **所见即所得预览** — CodeMirror 6 驱动的只读编辑器，实时渲染 Markdown 富文本。源码缓冲区是唯一真相，导出零序列化损耗
+- **数学公式** — KaTeX 集成，支持行内 `$...$` 和块级 `$$...$$` 公式（字体通过 base64 内联）
 - **Mermaid 图表** — 17+ 种图表：流程图、时序图、类图、状态图、ER 图、甘特图、思维导图等
 - **PDF 导出** — Puppeteer 无头 Chrome 生成 A4 PDF，完整保留主题样式
-- **HTML 导出** — 独立 `.html` 文件，内嵌 CSS，零依赖分享
-- **4 套内置主题** — Light、Dark、Elegant、Newsprint + 2 套自定义主题（学术论文、Trae Blue）
+- **HTML 导出** — 独立 `.html` 文件，内嵌 CSS 和字体，零依赖分享
+- **12 套内置主题** — Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight
 - **自定义主题目录** — 在工作区根目录 `.themes/` 文件夹中放入 `.css` 文件即可自动识别
 - **右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
-- **插件开关** — 通过设置在运行时动态启用/禁用数学公式和 Mermaid 渲染，配置变更实时同步到预览
 - **实时同步** — 编辑后 150ms 防抖更新，实验性编辑器/预览滚动同步
+- **源码保真** — 原始 Markdown 字节原样保留；导出直接使用缓冲区内容，无序列化损耗
 
 ## 快速开始
 
@@ -36,7 +36,7 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 | `ColaView MD: Show Preview` | 打开或聚焦预览面板 |
 | `ColaView MD: Export to PDF...` | 导出为 A4 PDF |
 | `ColaView MD: Export to HTML...` | 导出为独立 HTML |
-| `ColaView MD: Switch Preview Theme...` | 切换主题：Light / Dark / Elegant / Newsprint |
+| `ColaView MD: Switch Preview Theme...` | 切换主题：12 套内置 + 自定义 |
 | `ColaView MD: Import Custom Theme...` | 导入 `.css` 自定义主题 |
 
 ### 右键上下文菜单（预览面板内）
@@ -59,7 +59,15 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 | **Light** | 干净白底，蓝色调 | 通用、文档 |
 | **Dark** | GitHub Dark 配色 | 夜间编程 |
 | **Elegant** | 暖色衬线，米色基调 | 学术论文、长文 |
-| **Newsprint** | 衬线排版，印刷质感 | 打印、正式文档 |
+| **Sepia** | 暖褐色调，纸质质感 | 长时间阅读、护眼 |
+| **Notion** | Not.so MCP 风格 | 类 Notion 极简风 |
+| **Bear** | Bear.app 笔记风格 | 笔记、随笔 |
+| **Writer** | 等宽友好 | 技术文档、含代码多的文档 |
+| **Solarized Dark** | Ethan Schoonover 调色板 | 低对比深色编码 |
+| **Nord** | 北极蓝调色板 | 沉静专注写作 |
+| **Gruvbox** | 复古 80 年代终端风 | 怀旧、高对比 |
+| **Dracula** | Zeno Rocha 调色板 | 活力深色主题 |
+| **Midnight** | 深蓝 + 金色点缀 | 夜间写作、高级感 |
 
 ### 自定义主题
 
@@ -83,7 +91,7 @@ my-project/
 通过命令面板或设置切换：
 
 ```json
-{ "colaview.theme": "dark" }
+{ "colaview.theme": "nord" }
 ```
 
 导入自定义 CSS：`Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." 或右键菜单 → "Import Theme..."
@@ -92,13 +100,15 @@ my-project/
 
 | 配置 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `colaview.theme` | `string` | `"light"` | 预览主题：`light`、`dark`、`elegant`、`newsprint` 或任意自定义主题名 |
-| `colaview.plugins.math` | `boolean` | `true` | 启用 KaTeX 数学公式渲染 |
-| `colaview.plugins.mermaid` | `boolean` | `true` | 启用 Mermaid 图表渲染 |
+| `colaview.theme` | `string` | `"elegant"` | 预览主题：`light`、`dark`、`elegant`、`sepia`、`notion`、`bear`、`writer`、`solarized-dark`、`nord`、`gruvbox`、`dracula`、`midnight` 或任意自定义主题名 |
+| `colaview.plugins.math` | `boolean` | `true` | *(已废弃，v0.3.0 起默认启用)* KaTeX 已内置于 ColaMD 引擎，无法单独关闭 |
+| `colaview.plugins.mermaid` | `boolean` | `true` | *(已废弃，v0.3.0 起默认启用)* Mermaid 已内置于 ColaMD 引擎，无法单独关闭 |
 | `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF 引擎：`puppeteer` 或 `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | 打开 `.md` 文件时自动显示预览 |
 | `colaview.customThemesPath` | `string` | `""` | 自定义主题 CSS 目录路径 |
 | `colaview.scrollSync` | `boolean` | `false` | **实验性功能** — 启用编辑器与预览面板的滚动同步 |
+
+> **关于插件开关：** v0.3.0 起，数学公式和 Mermaid 图表是 CodeMirror 6 版 ColaMD 引擎的内置功能，始终启用。`colaview.plugins.math` 和 `colaview.plugins.mermaid` 配置项为向后兼容保留，但已不再生效。
 
 ## 支持的语法
 
@@ -133,22 +143,22 @@ graph LR
 ```
 ┌─────────────┐     postMessage      ┌──────────────────┐
 │  Extension   │ ◄──────────────────► │    WebView        │
-│  (Node.js)   │                      │  (Milkdown/       │
-│              │   raw markdown ──►   │   ColaMD editor)  │
+│  (Node.js)   │                      │  (CodeMirror 6/  │
+│              │   raw markdown ──►   │   ColaMD 渲染器)  │
 │  ThemeManager│   theme/css ──►      │                   │
-│  Exporters   │   ◄── rendered HTML  │  只读 WYSIWYG     │
-│              │                      │  + 右键上下文菜单  │
+│  Exporters   │   ◄── 完整 HTML      │  只读富文本预览    │
+│              │                      │  + 右键上下文菜单   │
 └─────────────┘                      └──────────────────┘
 ```
 
-**核心设计：** 扩展端将原始 Markdown 发送到 WebView，由 Milkdown（通过 ColaMD）渲染为只读所见即所得编辑器。导出时，WebView 将渲染后的 HTML 返回给扩展端。WebView 同时承载右键上下文菜单，提供快捷的导出和主题操作入口。
+**核心设计：** 扩展端将原始 Markdown 发送到 WebView，由 ColaMD（CodeMirror 6 内核）渲染为只读富文本预览。源码缓冲区是唯一真相，导出时直接使用缓冲区内容，零序列化损耗。导出时，WebView 异步构建完整独立 HTML（含 KaTeX 字体、Mermaid SVG、主题 CSS），返回给扩展端。
 
 ### 安全模型
 
-WebView 采用严格的内容安全策略（CSP），配合 nonce 机制加载脚本：
+WebView 采用严格的内容安全策略（CSP）：
 
-1. 扩展每次创建面板时生成随机 `nonce` 值
-2. CSP 仅允许匹配该特定 `nonce` 的脚本执行
+1. `style-src 'unsafe-inline'` — CodeMirror 6 动态样式和 KaTeX 内联字体需要
+2. `script-src 'unsafe-inline'` — esbuild IIFE 打包格式需要
 3. 所有资源 URI 通过 `webview.asWebviewUri()` 解析，实现沙箱隔离
 4. 即使 Markdown 内容包含恶意脚本也能防止 XSS 注入
 
@@ -159,19 +169,19 @@ src/
 ├── extension.ts              # 入口（activate/deactivate），错误隔离
 ├── commands/commands.ts      # 命令注册（showPreview, exportHTML, exportPDF 等）
 ├── preview/
-│   ├── preview-manager.ts    # WebView 生命周期、nonce CSP、消息处理、防抖同步
+│   ├── preview-manager.ts    # WebView 生命周期、消息处理、防抖同步
 │   └── webview/
 │       ├── index.html        # WebView 模板 + 右键菜单样式
-│       └── app.ts            # Milkdown/ColaMD 初始化 + 右键菜单逻辑
+│       └── app.ts            # ColaMD (CM6) 初始化 + 右键菜单 + 滚动同步
 ├── export/
 │   ├── pdf-exporter.ts       # Puppeteer PDF 生成（A4、保留背景）
-│   ├── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
-│   └── css-collector.ts      # CSS 变量提取（用于导出文档）
+│   └── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
 ├── themes/
 │   ├── theme-manager.ts      # 主题加载、切换、.themes/ 目录扫描、导入
 │   ├── foundation.css        # 基础 CSS 变量层（颜色、间距）
-│   └── built-in/             # light.css, dark.css, elegant.css, newsprint.css
-└── types.ts                  # 共享类型定义
+│   └── built-in/             # 12 套内置主题（light.css, dark.css, elegant.css, sepia.css, ...）
+└── types/
+    └── colamd-renderer.d.ts  # ColaMD 2.7.9 npm 包本地类型声明
 ```
 
 ## 开发
@@ -182,12 +192,12 @@ cd vscode-colaview
 npm install
 
 # 构建（esbuild 将所有依赖打包到 out/）
-npm run compile
+npm run build
 
 # 监听模式
 npm run watch
 
-# 打包 .vsix（约 206KB，无需 node_modules）
+# 打包 .vsix
 npm run package
 
 # 调试：在 VS Code 中按 F5 启动扩展开发宿主
@@ -195,11 +205,22 @@ npm run package
 
 ### 构建系统
 
-项目使用 **esbuild** 打包 — 所有依赖（包括 `@bytechain.cn/colamd`、`katex`、`mermaid`、`puppeteer`）均内联到 `out/extension.js`。构建时自动复制资源文件（CSS、WebView HTML/JS）到 `out/` 目录。最终 VSIX 约 206KB，零外部依赖。
+项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.9 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML）到 `out/` 目录。
 
 ## 更新日志
 
-### v0.2.0（当前版本）
+### v0.3.0（当前版本）
+
+- **🔧 引擎升级 — ColaMD 2.7.9（CodeMirror 6）** — 从 Milkdown/ProseMirror 迁移到 CodeMirror 6。源码缓冲区成为唯一真相，导出零序列化损耗
+- **🎨 12 套内置主题** — 从 4 套扩展到 12 套：Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight。默认主题改为 Elegant
+- **📤 异步 HTML 导出** — `buildExportHTML()` 变为异步，自动等待 Mermaid 图表和 KaTeX 字体渲染完成后再产出最终 HTML
+- **🗑️ 移除插件开关** — 数学公式和 Mermaid 已内置于 ColaMD 引擎；`colaview.plugins.math` 和 `colaview.plugins.mermaid` 配置项不再生效
+- **📰 移除 Newsprint 主题** — Newsprint 在 ColaMD 2.7.9 中不存在
+- **🔄 DOM 结构变更** — 预览容器使用 `.cm-editor` / `.cm-scroller` / `.cm-content` 替代 `.ProseMirror`。滚动同步目标更新为 `.cm-scroller`
+- **📦 依赖升级** — `@bytechain.cn/colamd` 从 `^1.5.2` 升级到 `^2.7.9`。2.7.9 npm 包未发布 `.d.ts` 文件，本地补充类型声明
+- **🖼️ KaTeX 字体内联** — KaTeX 字体 base64 编码在 `colamd.css` 中，PDF 导出无需额外资源路径
+
+### v0.2.0
 
 - **🏗️ 架构重构** — 激活流程错误隔离、PreviewManager 重构、math/mermaid 设置变更自动实时同步
 - **🖱️ 右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题

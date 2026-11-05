@@ -1,28 +1,34 @@
+/// <reference lib="dom" />
 /**
  * ColaView MD — WebView runtime
- * Milkdown editor in read-only mode + right-click context menu.
+ * CodeMirror 6 based ColaMD editor in read-only mode + right-click context menu.
+ * @bytechain.cn/colamd@2.7.9 适配
  */
-import { createColaMDEditor } from '@bytechain.cn/colamd/renderer';
-import type { ColaMDEditorHandle } from '@bytechain.cn/colamd/renderer';
+import { createColaMDEditor, type ColaMDRendererHandle } from '@bytechain.cn/colamd/renderer';
 
 // @ts-ignore — VSCode WebView API
 const vscode = acquireVsCodeApi();
 
-let handle: ColaMDEditorHandle | null = null;
+let handle: ColaMDRendererHandle | null = null;
 let currentMarkdown = '';
-let currentTheme = 'light';
+let currentTheme = 'elegant';
 let themeListData: { builtins: string[]; customs: string[]; current: string } | null = null;
 let scrollDebounceTimer: number | null = null;
 let receivedScrollFromEditor = false;
 
-function setupScrollSync(): void {
-    const editorEl = document.getElementById('editor');
-    if (!editorEl) return;
+function getScrollContainer(): HTMLElement | null {
+    // CodeMirror 6 把滚动放在 .cm-scroller 上，#editor 本身不动
+    return document.querySelector<HTMLElement>('.cm-scroller');
+}
 
-    editorEl.addEventListener('scroll', (e) => {
+function setupScrollSync(): void {
+    const scroller = getScrollContainer();
+    if (!scroller) return;
+
+    scroller.addEventListener('scroll', (e) => {
         const target = e.target as HTMLElement;
         if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
-        
+
         scrollDebounceTimer = window.setTimeout(() => {
             if (receivedScrollFromEditor) {
                 receivedScrollFromEditor = false;
@@ -39,62 +45,42 @@ function setupScrollSync(): void {
 }
 
 function scrollToPercent(percent: number): void {
-    const editorEl = document.getElementById('editor');
-    if (!editorEl || !handle) return;
+    const scroller = getScrollContainer();
+    if (!scroller || !handle) return;
 
     receivedScrollFromEditor = true;
-    
-    const maxScroll = editorEl.scrollHeight - editorEl.clientHeight;
+
+    const maxScroll = scroller.scrollHeight - scroller.clientHeight;
     const targetScrollTop = Math.max(0, Math.min(percent * maxScroll, maxScroll));
-    
-    editorEl.scrollTo({
+
+    scroller.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth'
     });
 }
 
 function scrollToLine(line: number, totalLines: number, topRatio: number = 0.3): void {
-    const editorEl = document.getElementById('editor');
-    if (!editorEl || !handle) return;
+    const scroller = getScrollContainer();
+    if (!scroller || !handle) return;
 
     receivedScrollFromEditor = true;
 
-    const contentEl = editorEl.querySelector('.editor-content, .milkdown, .prosemirror') || editorEl.firstElementChild;
+    const contentEl = document.querySelector<HTMLElement>('#editor .cm-content');
     if (!contentEl) {
         const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
         scrollToPercent(scrollPercent);
         return;
     }
 
-    const lineElements = contentEl.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, tr, code, pre, div');
-    if (lineElements.length === 0) {
-        const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
-        scrollToPercent(scrollPercent);
-        return;
-    }
-
+    // CM6 只渲染视口内的内容，所以只能用比例估算
     const scrollPercent = totalLines > 1 ? line / (totalLines - 1) : 0;
-    let targetIndex = Math.min(Math.floor(scrollPercent * lineElements.length), lineElements.length - 1);
+    const maxScroll = scroller.scrollHeight - scroller.clientHeight;
+    const targetScrollTop = Math.max(0, Math.min(scrollPercent * maxScroll, maxScroll));
 
-    const targetElement = lineElements[targetIndex] as HTMLElement;
-    if (targetElement) {
-        const editorRect = editorEl.getBoundingClientRect();
-        const elementRect = targetElement.getBoundingClientRect();
-        const elementOffsetTop = targetElement.offsetTop;
-
-        const currentScrollTop = editorEl.scrollTop;
-        const scrollOffset = elementOffsetTop - (editorRect.height * topRatio);
-        
-        const maxScroll = editorEl.scrollHeight - editorRect.height;
-        const finalScrollTop = Math.max(0, Math.min(scrollOffset, maxScroll));
-
-        editorEl.scrollTo({
-            top: finalScrollTop,
-            behavior: 'smooth'
-        });
-    } else {
-        scrollToPercent(scrollPercent);
-    }
+    scroller.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+    });
 }
 
 function injectThemeCSS(css: string | undefined): void {
@@ -113,21 +99,28 @@ window.addEventListener('message', async (event: MessageEvent) => {
     switch (data.type) {
         case 'init': {
             try {
-                currentTheme = data.theme || 'light';
+                currentTheme = data.theme || 'elegant';
                 injectThemeCSS(data.themeCSS);
+
+                // 2.7.9 API: 先创建编辑器（options 中不含 theme）
                 handle = await createColaMDEditor({
                     rootId: 'editor',
-                    theme: currentTheme,
                     editable: false,
-                    onChange: (md: string) => { currentMarkdown = md; },
                 });
+
+                // 然后应用主题
                 if (data.customCSS && data.theme) {
                     handle.applyTheme('custom:' + data.theme, data.customCSS);
+                } else {
+                    handle.applyTheme(currentTheme);
                 }
+
+                // 最后设置 markdown
                 if (data.markdown) {
                     handle.setMarkdown(data.markdown);
                     currentMarkdown = data.markdown;
                 }
+
                 setupScrollSync();
             } catch (e) {
                 console.error('[ColaView] init failed:', e);
@@ -157,9 +150,15 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 vscode.postMessage({ type: 'exportHTMLResult', html: '' });
                 return;
             }
-            await handle.ensureAllPluginsRendered();
-            const html = handle.buildExportHTML();
-            vscode.postMessage({ type: 'exportHTMLResult', html });
+            try {
+                const html = await handle.buildExportHTML({
+                    title: data.title || document.title || 'Document',
+                });
+                vscode.postMessage({ type: 'exportHTMLResult', html });
+            } catch (e) {
+                console.error('[ColaView] exportHTML failed:', e);
+                vscode.postMessage({ type: 'exportHTMLResult', html: '', error: String(e) });
+            }
             break;
         }
         case 'updateTheme': {
@@ -180,8 +179,8 @@ window.addEventListener('message', async (event: MessageEvent) => {
             break;
         }
         case 'togglePlugin': {
-            if (!handle) return;
-            handle.togglePlugin(data.id, data.enabled);
+            // 2.7.9 不再支持 togglePlugin — math 和 mermaid 是内置的
+            // 此消息保留但不再执行操作，避免旧配置项报错
             break;
         }
         case 'themeList': {
@@ -204,6 +203,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
     }
 });
 
+// ── Context Menu ──────────────────────────────────────────────
 let menuEl: HTMLElement | null = null;
 let themeSubmenuEl: HTMLElement | null = null;
 
@@ -252,7 +252,7 @@ function buildThemeSubmenu(): HTMLElement {
     for (const name of themeListData.builtins) {
         const item = document.createElement('div');
         item.className = 'ctx-menu-item' + (name === themeListData.current ? ' ctx-menu-active' : '');
-        item.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        item.textContent = name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' ');
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             if (themeListData) themeListData.current = name;
