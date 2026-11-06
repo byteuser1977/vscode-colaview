@@ -37,6 +37,8 @@ import {
   type ParagraphChild,
 } from 'docx';
 import { renderMathAndMermaidToImages } from './render-export-images';
+import { buildDocxStyleFromThemeCss } from './theme-style';
+import { ThemeManager } from '../themes/theme-manager';
 
 interface MarkdownNode {
   type: string;
@@ -905,7 +907,9 @@ export async function exportWord(document: vscode.TextDocument): Promise<void> {
   const sourcePath = document.fileName;
 
   const { content, images, imageSizes } = await renderMathAndMermaidToImages(markdown);
-  const buffer = await markdownToDocx({ content, sourcePath, images, imageSizes });
+  const themeCss = ThemeManager.loadThemeCSS(ThemeManager.getCurrentTheme());
+  const style = buildDocxStyleFromThemeCss(themeCss);
+  const buffer = await markdownToDocx({ content, sourcePath, images, imageSizes, style });
 
   const defaultName = document.fileName.replace(/\.md$/i, '.docx');
   const uri = await vscode.window.showSaveDialog({

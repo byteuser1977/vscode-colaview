@@ -6,6 +6,7 @@ import { ThemeManager } from '../themes/theme-manager';
 import { exportHTML } from '../export/html-exporter';
 import { exportPDF } from '../export/pdf-exporter';
 import { exportWord } from '../export/docx-exporter';
+import { translateThemeCssForExport } from '../export/theme-style';
 
 function getNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -378,8 +379,10 @@ export class PreviewManager {
      */
     private patchExportHTML(html: string): string {
         if (!html) return html;
+        const themeOverrideCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(ThemeManager.getCurrentTheme()));
+        const THEME_FIX = themeOverrideCss ? `<style>${themeOverrideCss}</style>` : '';
         const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
-        return html.replace('</head>', PRINT_FIX + '\n</head>');
+        return html.replace('</head>', PRINT_FIX + '\n' + THEME_FIX + '\n</head>');
     }
 
     sendTheme(theme: string): void {
