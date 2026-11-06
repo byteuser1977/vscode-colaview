@@ -379,10 +379,33 @@ export class PreviewManager {
      */
     private patchExportHTML(html: string): string {
         if (!html) return html;
-        const themeOverrideCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(ThemeManager.getCurrentTheme()));
+
+        // colamd 导出器把 document.body 的 class 原样复制到导出 HTML 的 <body> 上，
+        // 而它收集的主题规则（colamd.css 内置的 body.theme-X 字体/强调色/变量）全部
+        // 以 body.theme-X 为作用域 —— body 缺主题类时这些规则整体失配，导出就只剩
+        // 浅色默认样式。这里兜底把主题类补到导出 body 上。
+        const theme = ThemeManager.getCurrentTheme();
+        const isBuiltin = ThemeManager.getBuiltinThemes().includes(theme);
+        const themeClass = isBuiltin ? ThemeManager.getThemeClass(theme) : 'theme-custom';
+        let patched = html;
+        const bodyTagMatch = /<body[^>]*>/i.exec(patched);
+        if (bodyTagMatch) {
+            const bodyTag = bodyTagMatch[0];
+            if (/\sclass="/.test(bodyTag)) {
+                if (!new RegExp(`\\s${themeClass}[\\s"]`).test(bodyTag)) {
+                    patched = patched.replace(bodyTag, bodyTag.replace(/\sclass="/, ` class="${themeClass} `));
+                }
+            } else {
+                patched = patched.replace(bodyTag, bodyTag.replace(/<body/i, `<body class="${themeClass}"`));
+            }
+        }
+
+        // 自定义主题的规则不在 colamd.css 里（内置主题的翻译规则是冗余兜底），
+        // 翻译成语义选择器后注入到 </head> 前，保证优先级最高。
+        const themeOverrideCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(theme));
         const THEME_FIX = themeOverrideCss ? `<style>${themeOverrideCss}</style>` : '';
         const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
-        return html.replace('</head>', PRINT_FIX + '\n' + THEME_FIX + '\n</head>');
+        return patched.replace('</head>', PRINT_FIX + '\n' + THEME_FIX + '\n</head>');
     }
 
     sendTheme(theme: string): void {

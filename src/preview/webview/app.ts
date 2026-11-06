@@ -94,6 +94,22 @@ function injectThemeCSS(css: string | undefined): void {
     el.textContent = css;
 }
 
+/**
+ * 确保 body 挂上主题类。colamd 的 buildExportHTML 会把 document.body 的 class
+ * 原样复制到导出 HTML 的 <body>，而它收集的主题规则全部以 body.theme-X 为作用域
+ * （字体、强调色、主题变量）。预览本身靠注入的 :root 变量 + #editor 规则就能生效，
+ * 不依赖 body 类 —— 但导出不补上这个类就会整体丢格式。
+ */
+function ensureBodyThemeClass(): void {
+    const builtins = themeListData?.builtins ?? [];
+    if (builtins.length > 0 && !builtins.includes(currentTheme)) {
+        document.body.classList.add('theme-custom');
+        return;
+    }
+    // 内置主题：与 colamd 内部映射一致（theme-<name>）
+    document.body.classList.add(`theme-${currentTheme}`);
+}
+
 window.addEventListener('message', async (event: MessageEvent) => {
     const data = event.data;
     switch (data.type) {
@@ -114,6 +130,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 } else {
                     handle.applyTheme(currentTheme);
                 }
+                ensureBodyThemeClass();
 
                 // 最后设置 markdown
                 if (data.markdown) {
@@ -142,6 +159,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                     handle.applyTheme(data.theme);
                 }
                 currentTheme = data.theme;
+                ensureBodyThemeClass();
             }
             break;
         }
@@ -151,6 +169,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 return;
             }
             try {
+                ensureBodyThemeClass();
                 const html = await handle.buildExportHTML({
                     title: data.title || document.title || 'Document',
                 });
@@ -170,6 +189,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 handle.applyTheme(data.theme);
             }
             currentTheme = data.theme;
+            ensureBodyThemeClass();
             break;
         }
         case 'applyCustomTheme': {

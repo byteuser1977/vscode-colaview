@@ -48,15 +48,26 @@ function parseThemeTokens(themeCss: string): ThemeTokens {
         }
     }
 
+    // 遍历所有 `.cm-content { … }` 块：字体/行高可能不在第一个块里，
+    // 优先取含 font-family 的那个（如 writer 主题的整站等宽字体）。
     let fontFamily = '';
     let lineHeight: number | null = null;
-    // 字体/行高定义在 `#editor .cm-content { … }`（或等价的 `… .cm-content { … }`）里。
-    const contentMatch = /([^{}]*\.cm-content\b[^{}]*)\{([^}]*)\}/s.exec(themeCss);
-    if (contentMatch) {
-        const body = contentMatch[2];
+    const blockRe = /([^{}]*\.cm-content\b[^{}]*)\{([^}]*)\}/gs;
+    let firstBlock: string | null = null;
+    let m: RegExpExecArray | null;
+    while ((m = blockRe.exec(themeCss))) {
+        const body = m[2];
+        if (firstBlock === null) firstBlock = body;
         const fontMatch = /font-family\s*:\s*([^;]+)/i.exec(body);
-        if (fontMatch) fontFamily = fontMatch[1].trim();
-        const lineMatch = /line-height\s*:\s*([0-9.]+)/i.exec(body);
+        if (fontMatch) {
+            fontFamily = fontMatch[1].trim();
+            const lineMatch = /line-height\s*:\s*([0-9.]+)/i.exec(body);
+            if (lineMatch) lineHeight = parseFloat(lineMatch[1]);
+            break;
+        }
+    }
+    if (fontFamily === '' && firstBlock !== null) {
+        const lineMatch = /line-height\s*:\s*([0-9.]+)/i.exec(firstBlock);
         if (lineMatch) lineHeight = parseFloat(lineMatch[1]);
     }
 
@@ -70,8 +81,10 @@ function parseThemeTokens(themeCss: string): ThemeTokens {
 export function translateThemeCssForExport(themeCss: string): string {
     if (!themeCss) return '';
 
-    // 去掉 :root 变量块（导出 HTML 已由渲染端重新收集运行时变量，无需重复注入）。
-    let css = themeCss.replace(/:root\s*\{[^}]*\}/g, '');
+    // 保留 :root 变量块：导出 HTML 里的 :root 是渲染端收集的「运行时变量」，
+    // 当 webview body 缺主题类时会退回 colamd 的浅色默认值。注入的样式排在
+    // 最后，同特异性下后者胜，能让主题变量稳定覆盖默认值（自定义主题的唯一变量来源）。
+    let css = themeCss;
 
     // 导出的 <body> 即原编辑器 #editor 容器。
     css = css.replace(/#editor\b/g, 'body');
@@ -111,6 +124,9 @@ export function buildDocxStyleFromThemeCss(themeCss: string): Record<string, str
     put('blockquoteBackground', '--blockquote-bg');
     put('border', '--border-color');
     put('tableHeaderBackground', '--table-header-bg');
+
+    // 主题若显式定义了等宽字体栈（如自定义 .themes 主题），一并带上
+    if (vars['--font-mono']) style.monoFontStack = vars['--font-mono'];
 
     if (fontFamily) style.bodyFontStack = fontFamily;
     if (lineHeight !== null && Number.isFinite(lineHeight)) style.lineHeight = lineHeight;
