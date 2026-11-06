@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.0] - 2026-11-05
+## [0.3.0] - 2026-11-06
 
 ### Added
 - Added **Word (`.docx`) export** — ported from ColaMD-extend's `docx-export.ts`. Exports high-fidelity `.docx` with headings, paragraphs, inline styles (bold/italic/strikethrough/inline-code/links/highlight), code blocks, ordered/unordered/task lists, tables, blockquotes, horizontal rules, local & remote images, footnotes, KaTeX formulas (rasterized to images), and Mermaid diagrams (rasterized to images). New command `colaview.exportWord` ("Export to Word...") in the command palette, editor context menu, explorer context menu, and preview right-click menu.
@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Added direct dependencies: `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`.
 - Added **9 new built-in themes**: Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight — expanding from 4 to 12 total built-in themes
 - Added local **TypeScript type declarations** (`src/types/colamd-renderer.d.ts`) for `@bytechain.cn/colamd@2.7.9`, since the npm package does not publish `.d.ts` files
+- Added `src/export/theme-style.ts` — **theme-faithful export**. Converts editor-specific theme selectors (`#editor .cm-content .cm-md-*`) into semantic HTML selectors (`h1`/`strong`/`em`/`code`/`table`/`blockquote`...) and extracts `:root` tokens plus `.cm-content` font/line-height, then injects the converted styles into PDF, HTML and Word exports so exported documents inherit the current preview theme's fonts, accent colors, table styling, blockquote padding, etc.
 
 ### Changed
 - **Engine upgrade: ColaMD 2.7.9** — Migrated from Milkdown/ProseMirror to **CodeMirror 6** rendering engine. Source buffer is now the single source of truth with zero serialization loss on export.
@@ -27,12 +28,14 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fixed **PDF export rendering a blank page** — stripped the `@media print { ... #editor-region { display: none } }` rule (Electron desktop print rule) from the inlined `colamd.css` during WebView HTML construction, preventing the exported `<article>` from being hidden.
+- Fixed **exported documents losing preview theme styles** — theme CSS used editor-only DOM selectors (`#editor .cm-content .cm-md-*`) that could not match the semantic HTML produced by PDF/HTML/Word export, causing fonts, accent colors, table headers and blockquote padding to fall back to defaults. Fixed via the new `theme-style.ts` conversion layer.
 - Fixed scroll sync listening to wrong DOM node — CM6 uses `.cm-scroller` for scrolling instead of the container `#editor` element
 
 ### Files Changed
 - `package.json` — Bump `@bytechain.cn/colamd` from `^1.5.2` to `^2.7.9`, update theme enum, change default theme; add `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`
 - `src/export/docx-exporter.ts` — New Word export converter
 - `src/export/render-export-images.ts` — New KaTeX/Mermaid → PNG renderer for Word export
+- `src/export/theme-style.ts` — New theme CSS → semantic HTML style converter for exports
 - `src/preview/preview-manager.ts` — Strip Electron print rule from inlined CSS, add Word export message handler
 - `src/types/colamd-renderer.d.ts` — New local type declarations
 - `src/themes/theme-manager.ts` — Expand `BUILTIN_THEMES` to 12, update `THEME_CLASS_MAP`

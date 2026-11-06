@@ -15,6 +15,7 @@ Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD]
 - **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
 - **HTML Export** — Standalone `.html` with embedded CSS and fonts, zero-dependency sharing
 - **Word Export** — High-fidelity `.docx` with headings, lists, tables, images, code blocks, footnotes, and rasterized KaTeX/Mermaid
+- **Theme-Faithful Export** — PDF/HTML/Word exports inherit the current preview theme's fonts, accent colors, table styling and blockquote padding
 - **12 Built-in Themes** — Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight
 - **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
 - **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
@@ -180,7 +181,8 @@ src/
 │   ├── pdf-exporter.ts       # Puppeteer PDF generation (A4, print background)
 │   ├── html-exporter.ts      # Standalone HTML export (embedded CSS)
 │   ├── docx-exporter.ts      # Word (.docx) export via docx + remark-parse/remark-gfm
-│   └── render-export-images.ts # KaTeX/Mermaid → PNG (headless Chrome) for Word export
+│   ├── render-export-images.ts # KaTeX/Mermaid → PNG (headless Chrome) for Word export
+│   └── theme-style.ts        # Theme CSS → semantic HTML style converter for exports
 ├── themes/
 │   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
 │   ├── foundation.css        # Base CSS variables (colors, spacing)
@@ -210,14 +212,16 @@ npm run package
 
 ### Build System
 
-The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.9 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML) are copied to `out/` during build.
+The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.9 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML, KaTeX stylesheet, Mermaid script) are copied to `out/` during build so they survive `.vscodeignore` packaging.
 
 ## Changelog
 
 ### v0.3.0 (Current)
 
 - **📝 Word Export (`.docx`)** — Ported from ColaMD-extend. High-fidelity Word export with headings, paragraphs, inline styles, code blocks, lists, tables, blockquotes, horizontal rules, images, footnotes, and rasterized KaTeX/Mermaid diagrams.
+- **🎨 Theme-Faithful Export** — New `theme-style.ts` conversion layer maps editor-only theme selectors (`#editor .cm-content .cm-md-*`) to semantic HTML selectors, so PDF/HTML/Word exports inherit the current preview theme's fonts, accent colors, table header styling and blockquote padding.
 - **🐛 PDF Blank Export Fixed** — Stripped ColaMD's Electron `@media print` rule that hid the exported `<article>` element, so PDF (and HTML) export no longer renders blank.
+- **🐛 HTML Export Theme Fix** — Fixed exported HTML not applying preview theme styles due to the editor-only selector mismatch.
 - **📦 New Dependencies** — `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`.
 - **🔧 Engine Upgrade — ColaMD 2.7.9 (CodeMirror 6)** — Migrated from Milkdown/ProseMirror to CodeMirror 6. Source buffer is now the single source of truth with zero serialization loss on export.
 - **🎨 12 Built-in Themes** — Expanded from 4 to 12 themes: Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight. Default theme changed to Elegant.

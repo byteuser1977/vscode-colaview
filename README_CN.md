@@ -15,6 +15,7 @@ VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [Cola
 - **PDF 导出** — Puppeteer 无头 Chrome 生成 A4 PDF，完整保留主题样式
 - **HTML 导出** — 独立 `.html` 文件，内嵌 CSS 和字体，零依赖分享
 - **Word 导出** — 高保真 `.docx`，支持标题、列表、表格、图片、代码块、脚注，及 KaTeX/Mermaid 转图
+- **导出保留主题样式** — PDF/HTML/Word 导出继承当前预览主题的字体、强调色、表格样式和引用块内边距
 - **12 套内置主题** — Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight
 - **自定义主题目录** — 在工作区根目录 `.themes/` 文件夹中放入 `.css` 文件即可自动识别
 - **右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
@@ -180,7 +181,8 @@ src/
 │   ├── pdf-exporter.ts       # Puppeteer PDF 生成（A4、保留背景）
 │   ├── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
 │   ├── docx-exporter.ts      # Word (.docx) 导出（docx + remark-parse/remark-gfm）
-│   └── render-export-images.ts # KaTeX/Mermaid → PNG（无头 Chrome）用于 Word 导出
+│   ├── render-export-images.ts # KaTeX/Mermaid → PNG（无头 Chrome）用于 Word 导出
+│   └── theme-style.ts        # 主题 CSS → 语义化 HTML 样式转换器（供导出使用）
 ├── themes/
 │   ├── theme-manager.ts      # 主题加载、切换、.themes/ 目录扫描、导入
 │   ├── foundation.css        # 基础 CSS 变量层（颜色、间距）
@@ -210,14 +212,16 @@ npm run package
 
 ### 构建系统
 
-项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.9 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML）到 `out/` 目录。
+项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.9 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML、KaTeX 样式表、Mermaid 脚本）到 `out/` 目录，确保打包安装后功能正常。
 
 ## 更新日志
 
 ### v0.3.0（当前版本）
 
 - **📝 Word 导出（`.docx`）** — 从 ColaMD-extend 移植。高保真 Word 导出，支持标题、段落、行内样式、代码块、列表、表格、引用块、水平线、图片、脚注，以及 KaTeX/Mermaid 转图。
+- **🎨 导出保留主题样式** — 新增 `theme-style.ts` 转换模块，将编辑器专属选择器（`#editor .cm-content .cm-md-*`）映射为语义化 HTML 选择器，PDF/HTML/Word 导出继承当前预览主题的字体、强调色、表格表头样式和引用块内边距。
 - **🐛 修复 PDF 导出空白** — 剥离 ColaMD 的 Electron `@media print` 规则（该规则会隐藏导出的 `<article>` 元素），PDF（和 HTML）导出不再空白。
+- **🐛 修复 HTML 导出主题样式失效** — 修复导出 HTML 因编辑器专属选择器无法匹配而丢失主题样式的问题。
 - **📦 新增依赖** — `docx`、`katex`、`remark-parse`、`remark-gfm`、`unified`。
 - **🔧 引擎升级 — ColaMD 2.7.9（CodeMirror 6）** — 从 Milkdown/ProseMirror 迁移到 CodeMirror 6。源码缓冲区成为唯一真相，导出零序列化损耗
 - **🎨 12 套内置主题** — 从 4 套扩展到 12 套：Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight。默认主题改为 Elegant

@@ -1,6 +1,16 @@
 # Release Notes
 
-## v0.3.0 (2026-11-05)
+## v0.3.0 (2026-11-06)
+
+### 🎨 Theme-Faithful Export
+
+Exports now inherit the current preview theme's visual styling. Previously, theme CSS targeted editor-only DOM selectors (`#editor .cm-content .cm-md-*`), which could not match the semantic HTML (`<h1>`, `<strong>`, `<code>`, `<table>`, `<blockquote>`...) produced by PDF/HTML/Word export — causing fonts, accent colors, table header styling and blockquote padding to fall back to defaults.
+
+The new `src/export/theme-style.ts` conversion layer fixes this by:
+
+- Mapping `.cm-md-*` decoration classes to semantic HTML tags (e.g. `.cm-md-strong` → `strong`, `.cm-md-inlinecode` → `code`, `.cm-md-atxheading1` → `h1`)
+- Extracting `:root` CSS variables and `.cm-content` font family / line-height tokens from the theme
+- Injecting the converted styles into PDF, HTML and Word exports so the output faithfully reflects the active preview theme
 
 ### 📝 Word Export — `.docx`
 
