@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { ThemeManager } from '../themes/theme-manager';
 import { exportHTML } from '../export/html-exporter';
 import { exportPDF } from '../export/pdf-exporter';
+import { exportWord } from '../export/docx-exporter';
 
 function getNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -224,6 +225,10 @@ export class PreviewManager {
                         this.handleExportPDF();
                         break;
                     }
+                    case 'requestExportWord': {
+                        this.handleExportWord();
+                        break;
+                    }
                     case 'requestImportTheme': {
                         vscode.commands.executeCommand('colaview.importTheme');
                         break;
@@ -294,6 +299,19 @@ export class PreviewManager {
             await exportPDF(document, fullHTML);
         } catch (e) {
             vscode.window.showErrorMessage(`PDF export failed: ${e instanceof Error ? e.message : String(e)}`);
+        }
+    }
+
+    private async handleExportWord(): Promise<void> {
+        if (!this.currentUri) {
+            vscode.window.showWarningMessage('No Markdown file is open');
+            return;
+        }
+        try {
+            const document = await vscode.workspace.openTextDocument(this.currentUri);
+            await exportWord(document);
+        } catch (e) {
+            vscode.window.showErrorMessage(`Word export failed: ${e instanceof Error ? e.message : String(e)}`);
         }
     }
 
@@ -432,7 +450,9 @@ export class PreviewManager {
         // collectExportStyles() 会静默丢掉全部渲染样式（1.43MB → 15KB），导出的 HTML/PDF
         // 就没有排版和 KaTeX 字体了。内联样式对 CSSOM 完全可读，导出管线才能完整带走样式。
         const colamdCss = fs.readFileSync(path.join(webviewDir, 'colamd.css'), 'utf-8')
-            .replace(/<\/style/gi, '<\\/style'); // 防 css 内容意外闭合 style 标签
+            .replace(/<\/style/gi, '<\\/style') // 防 css 内容意外闭合 style 标签
+            // 剥离 ColaMD 桌面版打印隐藏规则，从源头避免导出 HTML/PDF 里 article 被 display:none
+            .replace(/@media\s*print\s*\{[^}]*\}/gi, (m) => m.includes('#editor-region') ? '' : m);
         html = html.replace(
             /<link rel="stylesheet" href="colamd\.css" id="colamd-css">/,
             `<style id="colamd-css">${colamdCss}</style>`

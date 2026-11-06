@@ -63,6 +63,18 @@ function copyResources() {
         copies.push({ src: colamdCss, dst: 'out/preview/webview/colamd.css' });
     }
 
+    // Copy static assets needed by the host-side renderers (Word export).
+    // These live in node_modules, which .vscodeignore strips from the vsix,
+    // so they must be copied into out/assets/ to survive packaging.
+    const katexCss = 'node_modules/katex/dist/katex.min.css';
+    if (fs.existsSync(katexCss)) {
+        copies.push({ src: katexCss, dst: 'out/assets/katex.min.css' });
+    }
+    const mermaidJs = 'node_modules/mermaid/dist/mermaid.min.js';
+    if (fs.existsSync(mermaidJs)) {
+        copies.push({ src: mermaidJs, dst: 'out/assets/mermaid.min.js' });
+    }
+
     for (const { src, dst } of copies) {
         if (!fs.existsSync(src)) continue;
         if (fs.statSync(src).isDirectory()) {

@@ -4,6 +4,7 @@ import { PreviewManager } from '../preview/preview-manager';
 import { ThemeManager } from '../themes/theme-manager';
 import { exportHTML } from '../export/html-exporter';
 import { exportPDF } from '../export/pdf-exporter';
+import { exportWord } from '../export/docx-exporter';
 
 /**
  * 注册所有 ColaView MD 命令
@@ -59,6 +60,15 @@ export function registerCommands(
                 return;
             }
             await exportPDF(editor.document, fullHTML);
+        }),
+
+        vscode.commands.registerCommand('colaview.exportWord', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'markdown') {
+                vscode.window.showWarningMessage('Open a Markdown file first');
+                return;
+            }
+            await exportWord(editor.document);
         }),
 
         vscode.commands.registerCommand('colaview.switchTheme', async () => {

@@ -2,6 +2,37 @@
 
 ## v0.3.0 (2026-11-05)
 
+### 📝 Word Export — `.docx`
+
+Reference implementation ported from [ColaMD-extend](https://github.com/byteuser1977/ColaMD-extend)'s `docx-export.ts`. Export any Markdown document to a high-fidelity Word document:
+
+- **Full structure** — headings, paragraphs, blockquotes, horizontal rules
+- **Inline styles** — bold, italic, strikethrough, inline code, links, `==highlight==`, footnotes
+- **Code blocks** — monospace with shaded background
+- **Lists** — ordered (with correct numbering), unordered, and task lists (`☑`/`☐`)
+- **Tables** — GFM tables with header shading and column alignment
+- **Images** — local, `data:` and remote (`http(s)`) images embedded natively
+- **KaTeX formulas** — inline/display math rasterized to images via headless Chrome + KaTeX
+- **Mermaid diagrams** — rasterized to images via headless Chrome + Mermaid
+
+The Word export runs entirely in the extension host (`docx` v9 → OOXML), parsing Markdown with `unified`/`remark-parse`/`remark-gfm`. Electron's `nativeImage` has been replaced with a pure-JS image dimension sniffer (`sniffImage`), so no DOM is required.
+
+**Usage** — Command Palette → "ColaView MD: Export to Word...", editor/explorer context menu, or preview right-click menu.
+
+New direct dependencies: `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`.
+
+### 🐛 PDF Blank Export Fixed
+
+The exported PDF was blank because `colamd.css`'s Electron desktop print rule
+
+```css
+@media print {
+  body > :not(#editor-region), #editor .code-copy-btn, ... { display: none !important }
+}
+```
+
+hides the entire exported `<article>` (which lives inside `<body>` without an `#editor-region` wrapper). The rule is now stripped from the inlined CSS at source, so both PDF and HTML export render correctly.
+
 ### 🔧 Engine Upgrade — ColaMD 2.7.9 (CodeMirror 6)
 
 This release upgrades the entire rendering engine from Milkdown/ProseMirror to **CodeMirror 6** via `@bytechain.cn/colamd@2.7.9`. This is a major version jump (from `^1.5.2` to `^2.7.9`) with fundamentally different architecture:

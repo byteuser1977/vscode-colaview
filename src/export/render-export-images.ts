@@ -1,0 +1,206 @@
+// 公式(KaTeX) / 图(Mermaid) 转 PNG —— 复用 puppeteer-core + 系统 Chrome/Edge。
+// 扩展宿主是纯 Node（无 DOM），故用无头浏览器把 `$$`/`$` 公式与 ```mermaid 代码块
+// 光栅化为 PNG，并把源 Markdown 重写为 `![...](colamd-xxx-N.png)` 占位图，
+// 与 colamd-extend 渲染进程的做法一致（最终由 docx 的 ImageRun 内嵌）。
+import * as fs from 'fs';
+import * as path from 'path';
+import katex from 'katex';
+import { findChromePath } from './pdf-exporter';
+
+export interface RichImageResult {
+  /** 重写后的 Markdown（公式/图已替换为图片占位）。 */
+  content: string;
+  /** 占位图名字 → PNG dataURL。 */
+  images: Record<string, string>;
+  /** 占位图名字 → 目标尺寸（CSS 像素）。 */
+  imageSizes: Record<string, { width: number; height: number }>;
+}
+
+interface RenderItem {
+  kind: 'math-block' | 'math-inline' | 'mermaid';
+  tex: string;
+  name: string;
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/** 定位依赖内的静态资源（打包后优先取 out/assets 下的副本，其次回退 node_modules）。 */
+function assetPath(pkg: string, file: string): string | null {
+  const candidates: string[] = [];
+  // 打包进 vsix 时 node_modules 被 .vscodeignore 排除，故把散件复制到 out/assets/。
+  candidates.push(path.resolve(__dirname, 'assets', path.basename(file)));
+  try {
+    candidates.push(path.resolve(path.dirname(require.resolve(`${pkg}/package.json`)), file));
+  } catch {
+    /* ignore */
+  }
+  candidates.push(path.resolve(__dirname, '..', 'node_modules', pkg, file));
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function readIfExists(p: string | null): string | null {
+  if (!p) return null;
+  try {
+    return fs.readFileSync(p, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+/** 是否为纯数字/货币式内容（避免把 "$5.99" 之类误判为行内公式）。 */
+function isPlainNumber(s: string): boolean {
+  return /^[\d\s.,%\-+()]*$/.test(s);
+}
+
+/** 扫描 Markdown，用占位图重写公式/Mermaid 并收集各自内容。 */
+function scan(markdown: string): { content: string; items: RenderItem[] } {
+  const items: RenderItem[] = [];
+  let rewritten = markdown;
+  let formulaIndex = 0;
+  let diagramIndex = 0;
+
+  // 1) Mermaid 代码块
+  rewritten = rewritten.replace(/```mermaid[ \t]*\n([\s\S]*?)\n```/g, (_match, code: string) => {
+    diagramIndex += 1;
+    const name = `colamd-diagram-${diagramIndex}.png`;
+    items.push({ kind: 'mermaid', tex: String(code), name });
+    return `![示意图 ${diagramIndex}](${name})`;
+  });
+
+  // 2) 块级公式 $$...$$
+  rewritten = rewritten.replace(/\$\$([\s\S]+?)\$\$/g, (_match, tex: string) => {
+    formulaIndex += 1;
+    const name = `colamd-formula-${formulaIndex}.png`;
+    items.push({ kind: 'math-block', tex: String(tex), name });
+    return `![公式 ${formulaIndex}](${name})`;
+  });
+
+  // 3) 行内公式 $...$（块级已替换完，仅剩单行非空、非货币）
+  rewritten = rewritten.replace(/\$([^$\n]+?)\$/g, (_match, tex: string) => {
+    const value = String(tex).trim();
+    if (value === '' || isPlainNumber(value)) return _match;
+    formulaIndex += 1;
+    const name = `colamd-formula-${formulaIndex}.png`;
+    items.push({ kind: 'math-inline', tex: value, name });
+    return `![公式 ${formulaIndex}](${name})`;
+  });
+
+  return { content: rewritten, items };
+}
+
+export async function renderMathAndMermaidToImages(markdown: string): Promise<RichImageResult> {
+  const { content, items } = scan(markdown);
+  if (items.length === 0) {
+    return { content, images: {}, imageSizes: {} };
+  }
+
+  const katexCss = readIfExists(assetPath('katex', path.join('dist', 'katex.min.css')));
+  const mermaidJs = readIfExists(assetPath('mermaid', path.join('dist', 'mermaid.min.js')));
+  const useMathml = !katexCss;
+
+  const cards = items.map((item, index) => {
+    if (item.kind === 'mermaid') {
+      if (!mermaidJs) {
+        return `<div class="card" id="card-${index}"><pre>${escapeHtml(item.tex)}</pre></div>`;
+      }
+      return `<div class="card" id="card-${index}"><pre class="mermaid">${escapeHtml(item.tex)}</pre></div>`;
+    }
+    const displayMode = item.kind === 'math-block';
+    const katexOut = katex.renderToString(item.tex, {
+      displayMode,
+      throwOnError: false,
+      output: useMathml ? 'mathml' : 'html',
+    });
+    return `<div class="card" id="card-${index}">${katexOut}</div>`;
+  }).join('\n');
+
+  const html = `<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+${katexCss ? `<style>${katexCss}</style>` : ''}
+<style>
+  body { margin: 16px; background: #ffffff; }
+  .card { display: inline-block; margin: 8px; vertical-align: middle; }
+  .card pre { margin: 0; font-family: monospace; }
+</style>
+</head><body>
+${cards}
+${mermaidJs ? `<script>${mermaidJs}</script>` : ''}
+<script>
+(function () {
+  if (!window.mermaid) { document.documentElement.dataset.ready = '1'; return; }
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+  var els = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid'));
+  var remaining = els.length;
+  if (remaining === 0) { document.documentElement.dataset.ready = '1'; return; }
+  els.forEach(function (el, i) {
+    mermaid.render('mmd-' + i, el.textContent || '').then(function (result) {
+      var tmp = document.createElement('template');
+      tmp.innerHTML = result.svg;
+      el.parentNode.replaceChild(tmp.content, el);
+    }).catch(function () {
+      el.outerHTML = '<span style="color:#999">mermaid render error</span>';
+    }).finally(function () {
+      remaining -= 1;
+      if (remaining <= 0) document.documentElement.dataset.ready = '1';
+    });
+  });
+})();
+</script>
+</body></html>`;
+
+  const chromePath = findChromePath();
+  if (!chromePath) {
+    // 无 Chrome/Edge：跳过图片渲染，公式/图回退为文本（占位图仅剩 alt 文本）。
+    return { content, images: {}, imageSizes: {} };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const puppeteer = require('puppeteer-core');
+  const browser = await puppeteer.launch({ headless: true, executablePath: chromePath });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1200, height: 900, deviceScaleFactor: 1 });
+    await page.setContent(html, { waitUntil: 'load' });
+    // 等待 mermaid 渲染完成（无 mermaid 时页面立即置 ready）
+    await page.waitForFunction("document.documentElement.dataset.ready === '1'", { timeout: 15000 })
+      .catch(() => { /* 超时也继续：至少能截到已渲染部分 */ });
+
+    const images: Record<string, string> = {};
+    const imageSizes: Record<string, { width: number; height: number }> = {};
+
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      const handle = await page.$(`#card-${index}`);
+      if (!handle) continue;
+      const box = await handle.boundingBox();
+      if (!box || box.width < 1 || box.height < 1) continue;
+      const shot = (await handle.screenshot({ type: 'png' })) as Buffer;
+      if (!shot || shot.length === 0) continue;
+
+      images[item.name] = `data:image/png;base64,${shot.toString('base64')}`;
+      if (item.kind === 'math-inline') {
+        // 行内公式缩放到正文字高（约 22px）
+        const targetHeight = 22;
+        const scale = Math.min(1, targetHeight / box.height);
+        imageSizes[item.name] = {
+          width: Math.max(1, Math.round(box.width * scale)),
+          height: Math.max(1, Math.round(box.height * scale)),
+        };
+      } else {
+        imageSizes[item.name] = { width: Math.round(box.width), height: Math.round(box.height) };
+      }
+      await handle.dispose();
+    }
+    return { content, images, imageSizes };
+  } finally {
+    await browser.close();
+  }
+}

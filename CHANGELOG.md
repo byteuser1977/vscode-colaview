@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [0.3.0] - 2026-11-05
 
 ### Added
+- Added **Word (`.docx`) export** — ported from ColaMD-extend's `docx-export.ts`. Exports high-fidelity `.docx` with headings, paragraphs, inline styles (bold/italic/strikethrough/inline-code/links/highlight), code blocks, ordered/unordered/task lists, tables, blockquotes, horizontal rules, local & remote images, footnotes, KaTeX formulas (rasterized to images), and Mermaid diagrams (rasterized to images). New command `colaview.exportWord` ("Export to Word...") in the command palette, editor context menu, explorer context menu, and preview right-click menu.
+- Added `src/export/docx-exporter.ts` — pure-Node `markdownToDocx()` using `docx` v9 + `unified`/`remark-parse`/`remark-gfm`, with a pure-JS image dimension sniffer (`sniffImage`) in place of Electron's `nativeImage`.
+- Added `src/export/render-export-images.ts` — headless-Chrome (puppeteer-core) rasterizes KaTeX and Mermaid to PNG, rewriting the source Markdown to image placeholders.
+- Added direct dependencies: `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`.
 - Added **9 new built-in themes**: Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight — expanding from 4 to 12 total built-in themes
 - Added local **TypeScript type declarations** (`src/types/colamd-renderer.d.ts`) for `@bytechain.cn/colamd@2.7.9`, since the npm package does not publish `.d.ts` files
 
@@ -22,10 +26,14 @@ All notable changes to this project will be documented in this file.
 - **Removed local `colamd-renderer.js` copy** — The WebView now imports ColaMD directly from the npm package via esbuild bundling.
 
 ### Fixed
+- Fixed **PDF export rendering a blank page** — stripped the `@media print { ... #editor-region { display: none } }` rule (Electron desktop print rule) from the inlined `colamd.css` during WebView HTML construction, preventing the exported `<article>` from being hidden.
 - Fixed scroll sync listening to wrong DOM node — CM6 uses `.cm-scroller` for scrolling instead of the container `#editor` element
 
 ### Files Changed
-- `package.json` — Bump `@bytechain.cn/colamd` from `^1.5.2` to `^2.7.9`, update theme enum, change default theme
+- `package.json` — Bump `@bytechain.cn/colamd` from `^1.5.2` to `^2.7.9`, update theme enum, change default theme; add `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`
+- `src/export/docx-exporter.ts` — New Word export converter
+- `src/export/render-export-images.ts` — New KaTeX/Mermaid → PNG renderer for Word export
+- `src/preview/preview-manager.ts` — Strip Electron print rule from inlined CSS, add Word export message handler
 - `src/types/colamd-renderer.d.ts` — New local type declarations
 - `src/themes/theme-manager.ts` — Expand `BUILTIN_THEMES` to 12, update `THEME_CLASS_MAP`
 - `src/themes/built-in/*.css` — 9 new theme CSS files

@@ -309,6 +309,10 @@ function showMenu(x: number, y: number): void {
         vscode.postMessage({ type: 'requestExportPDF' });
     }));
 
+    menu.appendChild(createMenuItem('Export Word', () => {
+        vscode.postMessage({ type: 'requestExportWord' });
+    }));
+
     menu.appendChild(createMenuSeparator());
 
     const themeItem = document.createElement('div');

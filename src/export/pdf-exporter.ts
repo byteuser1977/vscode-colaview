@@ -8,7 +8,7 @@ import * as fs from 'fs';
 /**
  * 查找系统中已安装的 Chrome 或 Edge 可执行文件路径
  */
-function findChromePath(): string | null {
+export function findChromePath(): string | null {
     const platform = process.platform;
     const candidates: string[] = [];
 

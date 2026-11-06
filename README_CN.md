@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
 
-VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
+VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
 ## 功能特性
 
@@ -14,6 +14,7 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 - **Mermaid 图表** — 17+ 种图表：流程图、时序图、类图、状态图、ER 图、甘特图、思维导图等
 - **PDF 导出** — Puppeteer 无头 Chrome 生成 A4 PDF，完整保留主题样式
 - **HTML 导出** — 独立 `.html` 文件，内嵌 CSS 和字体，零依赖分享
+- **Word 导出** — 高保真 `.docx`，支持标题、列表、表格、图片、代码块、脚注，及 KaTeX/Mermaid 转图
 - **12 套内置主题** — Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight
 - **自定义主题目录** — 在工作区根目录 `.themes/` 文件夹中放入 `.css` 文件即可自动识别
 - **右键上下文菜单** — 预览面板内直接导出 HTML/PDF、切换主题（含子菜单）、导入自定义主题
@@ -36,6 +37,7 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 | `ColaView MD: Show Preview` | 打开或聚焦预览面板 |
 | `ColaView MD: Export to PDF...` | 导出为 A4 PDF |
 | `ColaView MD: Export to HTML...` | 导出为独立 HTML |
+| `ColaView MD: Export to Word...` | 导出为 `.docx` Word 文档 |
 | `ColaView MD: Switch Preview Theme...` | 切换主题：12 套内置 + 自定义 |
 | `ColaView MD: Import Custom Theme...` | 导入 `.css` 自定义主题 |
 
@@ -47,6 +49,7 @@ VS Code 富文本 Markdown 预览与 PDF/HTML 导出扩展 — 基于 [ColaMD](h
 |--------|------|
 | **Export HTML** | 将当前预览导出为独立 HTML |
 | **Export PDF** | 将当前预览导出为 A4 PDF |
+| **Export Word** | 将当前预览导出为 `.docx` Word 文档 |
 | **Theme ▸** | 子菜单列出所有内置 + 自定义主题（✓ 标记当前激活） |
 | **Import Theme...** | 打开文件选择器导入 `.css` 文件 |
 
@@ -175,7 +178,9 @@ src/
 │       └── app.ts            # ColaMD (CM6) 初始化 + 右键菜单 + 滚动同步
 ├── export/
 │   ├── pdf-exporter.ts       # Puppeteer PDF 生成（A4、保留背景）
-│   └── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
+│   ├── html-exporter.ts      # 独立 HTML 导出（内嵌 CSS）
+│   ├── docx-exporter.ts      # Word (.docx) 导出（docx + remark-parse/remark-gfm）
+│   └── render-export-images.ts # KaTeX/Mermaid → PNG（无头 Chrome）用于 Word 导出
 ├── themes/
 │   ├── theme-manager.ts      # 主题加载、切换、.themes/ 目录扫描、导入
 │   ├── foundation.css        # 基础 CSS 变量层（颜色、间距）
@@ -211,6 +216,9 @@ npm run package
 
 ### v0.3.0（当前版本）
 
+- **📝 Word 导出（`.docx`）** — 从 ColaMD-extend 移植。高保真 Word 导出，支持标题、段落、行内样式、代码块、列表、表格、引用块、水平线、图片、脚注，以及 KaTeX/Mermaid 转图。
+- **🐛 修复 PDF 导出空白** — 剥离 ColaMD 的 Electron `@media print` 规则（该规则会隐藏导出的 `<article>` 元素），PDF（和 HTML）导出不再空白。
+- **📦 新增依赖** — `docx`、`katex`、`remark-parse`、`remark-gfm`、`unified`。
 - **🔧 引擎升级 — ColaMD 2.7.9（CodeMirror 6）** — 从 Milkdown/ProseMirror 迁移到 CodeMirror 6。源码缓冲区成为唯一真相，导出零序列化损耗
 - **🎨 12 套内置主题** — 从 4 套扩展到 12 套：Light、Dark、Elegant、Sepia、Notion、Bear、Writer、Solarized Dark、Nord、Gruvbox、Dracula、Midnight。默认主题改为 Elegant
 - **📤 异步 HTML 导出** — `buildExportHTML()` 变为异步，自动等待 Mermaid 图表和 KaTeX 字体渲染完成后再产出最终 HTML

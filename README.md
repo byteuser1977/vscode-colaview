@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
 
-Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
+Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
 ## Features
 
@@ -14,6 +14,7 @@ Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](http
 - **Mermaid Diagrams** — 17+ chart types: flowcharts, sequence, class, state, ER, Gantt, mind maps, etc.
 - **PDF Export** — Puppeteer headless Chrome renders A4 PDF with full theme styling
 - **HTML Export** — Standalone `.html` with embedded CSS and fonts, zero-dependency sharing
+- **Word Export** — High-fidelity `.docx` with headings, lists, tables, images, code blocks, footnotes, and rasterized KaTeX/Mermaid
 - **12 Built-in Themes** — Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight
 - **Custom Theme Directory** — Drop `.css` files into `.themes/` folder in your workspace root; they appear automatically in the theme menu
 - **Right-click Context Menu** — Export HTML/PDF, switch theme (with submenu), import custom theme — all from within the preview panel
@@ -36,6 +37,7 @@ Rich Markdown preview & PDF/HTML export for VS Code — powered by [ColaMD](http
 | `ColaView MD: Show Preview` | Open or focus the preview panel |
 | `ColaView MD: Export to PDF...` | Export current file as A4 PDF |
 | `ColaView MD: Export to HTML...` | Export as standalone HTML |
+| `ColaView MD: Export to Word...` | Export current file as `.docx` Word document |
 | `ColaView MD: Switch Preview Theme...` | Choose from 12 built-in + custom themes |
 | `ColaView MD: Import Custom Theme...` | Load a `.css` file as custom theme |
 
@@ -47,6 +49,7 @@ When the preview is open, right-click anywhere to access:
 |-----------|-------------|
 | **Export HTML** | Export current preview as standalone HTML |
 | **Export PDF** | Export current preview as A4 PDF |
+| **Export Word** | Export current preview as `.docx` Word document |
 | **Theme ▸** | Submenu listing all built-in + custom themes (✓ marks active) |
 | **Import Theme...** | Open file picker to import a `.css` file |
 
@@ -175,7 +178,9 @@ src/
 │       └── app.ts            # ColaMD (CM6) init + context menu + scroll sync
 ├── export/
 │   ├── pdf-exporter.ts       # Puppeteer PDF generation (A4, print background)
-│   └── html-exporter.ts      # Standalone HTML export (embedded CSS)
+│   ├── html-exporter.ts      # Standalone HTML export (embedded CSS)
+│   ├── docx-exporter.ts      # Word (.docx) export via docx + remark-parse/remark-gfm
+│   └── render-export-images.ts # KaTeX/Mermaid → PNG (headless Chrome) for Word export
 ├── themes/
 │   ├── theme-manager.ts      # Theme loading, switching, .themes/ directory scanning, import
 │   ├── foundation.css        # Base CSS variables (colors, spacing)
@@ -211,6 +216,9 @@ The project uses **esbuild** for bundling — the extension side (`out/extension
 
 ### v0.3.0 (Current)
 
+- **📝 Word Export (`.docx`)** — Ported from ColaMD-extend. High-fidelity Word export with headings, paragraphs, inline styles, code blocks, lists, tables, blockquotes, horizontal rules, images, footnotes, and rasterized KaTeX/Mermaid diagrams.
+- **🐛 PDF Blank Export Fixed** — Stripped ColaMD's Electron `@media print` rule that hid the exported `<article>` element, so PDF (and HTML) export no longer renders blank.
+- **📦 New Dependencies** — `docx`, `katex`, `remark-parse`, `remark-gfm`, `unified`.
 - **🔧 Engine Upgrade — ColaMD 2.7.9 (CodeMirror 6)** — Migrated from Milkdown/ProseMirror to CodeMirror 6. Source buffer is now the single source of truth with zero serialization loss on export.
 - **🎨 12 Built-in Themes** — Expanded from 4 to 12 themes: Light, Dark, Elegant, Sepia, Notion, Bear, Writer, Solarized Dark, Nord, Gruvbox, Dracula, Midnight. Default theme changed to Elegant.
 - **📤 Async HTML Export** — `buildExportHTML()` is now asynchronous, automatically waits for Mermaid diagrams and KaTeX fonts to render before producing the final HTML.
