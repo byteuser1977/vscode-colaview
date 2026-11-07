@@ -410,16 +410,28 @@ export class PreviewManager {
         // 导出的正文颜色才能跟预览一致。
         const ENGINE_THEME_FIX = `<style>${translateEngineThemeCssForExport(this.loadEngineColamdCss())}</style>`;
         const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
-        // colamd.css 的 --pele-* 变量挂在 `.cm-content .cm-md-mermaid` 上，而导出文档里
-        // mermaid 块被序列化成不带类名的 `<div><svg class="pele pele-…">…</svg></div>`，
-        // 既没有 .cm-md-mermaid 类也没有 .cm-content 祖先，SVG 只能吃 pele 的兜底色，
-        // 配色跟界面对不上（镜像 colamd-extend a25b3f8 的修复，选择器改用 :has 命中）。
+        // 导出文档里 mermaid 块被引擎序列化成不带类名的 `<p><svg class="pele pele-…">…</svg></p>`
+        // （实测 block widget 以非 .cm-line 子节点进入序列化，走段落分支，不是
+        // `hte('mermaid')` 的 `<div>` 分支）—— .cm-md-mermaid 上的居中、--pele-* 令牌、
+        // 代码块底色都随之丢掉。所以这里按导出文档的实际结构再补一份：<p> 容器给代码块底色
+        // （图和代码块共用一块底，和 ColaMD 导出一致），SVG 用 block + 左右 auto 外边距居中。
         // 图上的缩放控件（.pele-zoom）是编辑器的东西，不是文档内容 —— 导出纸面上藏掉
         // （镜像 colamd-extend print-layout.ts 的修复；Chromium 打印不执行脚本，
         // pele 没机会收回它们，控件会叠在图上进 PDF）。
         const MERMAID_FIX = `<style>
-.colamd-document div:has(> svg.pele), .colamd-document div:has(> div.pele) {
-  display: block; text-align: center; padding: 0.8em 0; color: var(--text-muted); font-size: 0.9em;
+/* 图表配色是按 --code-block-bg（代码块底色）推出来的，图和代码块是同一块底：
+   预览里它浮在代码块底色上，导出的纸面上也要给同一块底，否则整块背景色
+   和 ColaMD 导出对不上。引擎未来若改回保留类名的 <div class="cm-md-mermaid">，
+   第一条选择器继续命中。 */
+.colamd-document .cm-md-mermaid,
+.colamd-document p:has(> svg.pele) {
+  background: var(--code-block-bg);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+  text-align: center;
+}
+.colamd-document svg.pele {
+  display: block; margin: 0 auto; max-width: 100%; height: auto;
   --pele-bg: var(--code-block-bg);
   --pele-fg: var(--code-block-text, var(--text-color));
   --pele-muted: color-mix(in srgb, var(--code-block-text, var(--text-color)) 70%, var(--code-block-bg));
@@ -430,7 +442,6 @@ export class PreviewManager {
   --pele-accent: var(--link-color);
   --pele-radius: 6px;
 }
-.colamd-document div:has(> svg.pele) svg { max-width: 100%; height: auto; }
 .colamd-document .pele-zoom { display: none !important; }
 </style>`;
         return patched.replace('</head>', PRINT_FIX + '\n' + MERMAID_FIX + '\n' + ENGINE_THEME_FIX + '\n' + THEME_FIX + '\n</head>');

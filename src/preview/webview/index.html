@@ -50,6 +50,13 @@
         #editor .cm-scroller {
             overflow: auto;
         }
+        /* mermaid 图要画在代码块的深色底上（和 ColaMD 一致）：图表配色是按
+           --code-block-bg 推出来的，浮在浅色页面上时整块底色和那边对不上。 */
+        #editor .cm-md-mermaid {
+            background: var(--code-block-bg);
+            border-radius: 6px;
+            padding: 0.8em 1em;
+        }
 
         /* ── Context Menu ── */
         .ctx-menu {

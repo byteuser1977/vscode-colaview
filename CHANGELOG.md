@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2026-11-07
+
+### Fixed
+- Fixed **Mermaid diagrams left-aligned in PDF/HTML exports** — the engine serializes mermaid blocks as class-stripped `<p><svg class="pele pele-…">…</svg></p>`, so the previous export rule (`div:has(> svg.pele)`) never matched and its `text-align: center` never applied: diagrams were centered in the preview but flush-left on paper. Centering now lives on `svg.pele` itself (`display: block; margin: 0 auto`), independent of the wrapper element.
+- Fixed **Mermaid diagram background not matching ColaMD-extend** — diagram colors are derived from the theme's code-block background (`--code-block-bg`), and in ColaMD the diagram sits on that block background. ColaView preview and export rendered it on the plain page background instead. Both now paint the same block behind the diagram (code-block background, 6px radius, `0.8em 1em` padding), so Elegant/Bear (light themes with dark code blocks) match ColaMD's dark diagram block.
+
+### Changed
+- `src/preview/webview/index.html` gives `.cm-md-mermaid` the code-block background in the preview; `src/preview/preview-manager.ts` applies the same block, plus the centering rule, to the serialized mermaid wrapper in HTML/PDF exports.
+
 ## [0.3.2] - 2026-11-07
 
 ### Fixed
