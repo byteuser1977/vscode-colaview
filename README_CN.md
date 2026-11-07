@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.1-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
@@ -212,11 +212,19 @@ npm run package
 
 ### 构建系统
 
-项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.9 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML、KaTeX 样式表、Mermaid 脚本）到 `out/` 目录，确保打包安装后功能正常。
+项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.11 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML、KaTeX 样式表、Mermaid 脚本）到 `out/` 目录，确保打包安装后功能正常。
 
 ## 更新日志
 
-### v0.3.0（当前版本）
+### v0.3.1（当前版本）
+
+- **🔧 引擎升级 — ColaMD 2.7.11** — 表格单元格内的行内公式成图、列表缩进纯 CSS 分派、块级 widget 布局修复、回车/退格回归 CM6 官方命令。
+- **🎨 Word 导出 Mermaid 配色跟随主题** — 图表配色从当前预览主题令牌推导（深色主题回落浅色），替代原来写死的 mermaid `neutral`。
+- **🐛 修复 Windows 下 Word 代码块乱码** — 等宽字体写入全部四个 `w:rFonts` 槽位 + 单独的 CJK `eastAsia` 中文字体、显式左对齐、浅色边框、`noProof`（移植 ColaMD-extend #202）。
+- **🐛 修复行内公式在 Word 导出中被折行** — 截图前测量视口加宽到 2000px。
+- **🐛 HTML/PDF 导出图表配色跟随主题 + 不再带缩放控件** — 导出 CSS 命中序列化后的 pele SVG 包裹结构恢复 `--pele-*` 变量映射；纸面上隐藏编辑器专属缩放控件。
+
+### v0.3.0
 
 - **📝 Word 导出（`.docx`）** — 从 ColaMD-extend 移植。高保真 Word 导出，支持标题、段落、行内样式、代码块、列表、表格、引用块、水平线、图片、脚注，以及 KaTeX/Mermaid 转图。
 - **🎨 导出保留主题样式** — 新增 `theme-style.ts` 转换模块，将编辑器专属选择器（`#editor .cm-content .cm-md-*`）映射为语义化 HTML 选择器，PDF/HTML/Word 导出继承当前预览主题的字体、强调色、表格表头样式和引用块内边距。

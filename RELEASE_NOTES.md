@@ -1,5 +1,34 @@
 # Release Notes
 
+## v0.3.1 (2026-11-07)
+
+### 🔧 Engine Upgrade — ColaMD 2.7.11
+
+`@bytechain.cn/colamd` bumped from 2.7.9 to 2.7.11, bringing upstream fixes: inline math inside table cells rendered as formulas, list indent handled purely by CSS, cursor alignment with multi-digit ordered lists, block-level widget layout (diagram height re-measured after async render), and Enter/Backspace restored to official CodeMirror commands.
+
+### 🐛 Windows Word Code Blocks Fixed (ColaMD-extend #202)
+
+Three Windows-only symptoms, one module:
+
+1. **Garbled code** — the mono font was written into all four `w:rFonts` slots; a macOS-only font made Word substitute the whole run with symbol glyphs. Now uses a platform mono font (Menlo / Consolas / DejaVu Sans Mono) plus a dedicated CJK `eastAsia` font so Chinese comments render properly.
+2. **Explicit left alignment** — code paragraphs inherited justified alignment, stretching every line to full width. Now explicitly left-aligned, single line spacing, with a light border and shading.
+3. **No spell-check squiggles** — `noProof` added to inline code and code block runs.
+
+### 🎨 Word Mermaid Diagrams Follow the Preview Theme
+
+Exported diagrams were hardcoded to mermaid's `neutral` theme. Diagram colors are now derived from the current theme's tokens — surface/border mixes at 18% / 28% / 45%, the same ratios the editor uses — with dark themes falling back to the light palette (same rule as body text).
+
+### 🐛 Inline Formulas No Longer Wrap in Word
+
+The rasterization viewport was widened to 2000px before measuring, so slightly-wide formulas are no longer line-wrapped by KaTeX inside the capture (port of ColaMD-extend's `MEASURE_WIDTH` fix).
+
+### 🐛 HTML/PDF Diagrams Follow Theme + No Zoom Controls
+
+- Export CSS now matches the serialized `<div><svg class="pele pele-…">` wrappers to restore the `--pele-*` variable mapping, so diagrams keep the theme's colors (port of ColaMD-extend a25b3f8).
+- The editor-only diagram zoom controls (`.pele-zoom`) are hidden in exports — Chromium print doesn't run scripts, so pele never gets the chance to remove them and they overlapped diagrams in PDFs (port of `print-layout.ts`).
+
+---
+
 ## v0.3.0 (2026-11-06)
 
 ### 🎨 Theme-Faithful Export

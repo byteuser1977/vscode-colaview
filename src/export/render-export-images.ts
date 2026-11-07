@@ -60,6 +60,106 @@ function isPlainNumber(s: string): boolean {
   return /^[\d\s.,%\-+()]*$/.test(s);
 }
 
+/** sRGB 按权重混合，等价于 `color-mix(in srgb, a w%, b)`。入参出参都不带 `#`。 */
+function mixSrgb(a: string, b: string, weightA: number): string {
+  const parse = (hex: string) => [0, 2, 4].map((index) => Number.parseInt(hex.slice(index, index + 2), 16) || 0);
+  const [ra, ga, ba] = parse(a);
+  const [rb, gb, bb] = parse(b);
+  const mix = (x: number, y: number) => Math.max(0, Math.min(255, Math.round(x * weightA + y * (1 - weightA))));
+  return [mix(ra, rb), mix(ga, gb), mix(ba, bb)]
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+}
+
+/**
+ * Mermaid 画图用的调色板令牌（镜像 colamd-extend diagramPrintPalette 的推导规则）。
+ * 令牌与 DocxStyle 同源：「浅色跟随主题、深色整体回落浅色」，混合比例照抄
+ * colamd.css 的 `.cm-md-mermaid`（18% / 28% / 45% 三档），两边要一起改。
+ */
+export interface DiagramPalette {
+  background: string;
+  foreground: string;
+  accent: string;
+}
+
+/** 没有主题令牌时按浅色默认画（与 docx-exporter 的 DEFAULT_STYLE 同源）。 */
+const DEFAULT_DIAGRAM_PALETTE: DiagramPalette = {
+  background: 'F6F8FA',
+  foreground: '24292F',
+  accent: '0969DA',
+};
+
+function normalizeHex(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const raw = value.trim().replace(/^#/, '');
+  if (/^[0-9a-f]{6}$/i.test(raw)) return raw.toUpperCase();
+  if (/^[0-9a-f]{3}$/i.test(raw)) return raw.split('').map((digit) => digit + digit).join('').toUpperCase();
+  if (/^[0-9a-f]{8}$/i.test(raw)) return raw.slice(0, 6).toUpperCase();
+  return fallback;
+}
+
+/** 从主题令牌推导 Mermaid 的 themeVariables（theme: 'base'）。 */
+function mermaidThemeVariables(palette: DiagramPalette): Record<string, string> {
+  const { background: bg, foreground: fg } = palette;
+  const surface = mixSrgb(fg, bg, 0.18);
+  const surfaceAlt = mixSrgb(fg, bg, 0.28);
+  const border = mixSrgb(fg, bg, 0.45);
+  return {
+    background: `#${bg}`,
+    textColor: `#${fg}`,
+    primaryTextColor: `#${fg}`,
+    secondaryTextColor: `#${fg}`,
+    tertiaryTextColor: `#${fg}`,
+    primaryColor: `#${surface}`,
+    secondaryColor: `#${surfaceAlt}`,
+    tertiaryColor: `#${bg}`,
+    mainBkg: `#${surface}`,
+    clusterBkg: `#${surface}`,
+    clusterBorder: `#${border}`,
+    primaryBorderColor: `#${border}`,
+    secondaryBorderColor: `#${border}`,
+    tertiaryBorderColor: `#${border}`,
+    lineColor: `#${fg}`,
+    edgeLabelBackground: `#${bg}`,
+    noteBkgColor: `#${surfaceAlt}`,
+    noteTextColor: `#${fg}`,
+    noteBorderColor: `#${border}`,
+    actorBkg: `#${surface}`,
+    actorBorder: `#${border}`,
+    actorTextColor: `#${fg}`,
+    actorLineColor: `#${border}`,
+    signalColor: `#${fg}`,
+    signalTextColor: `#${fg}`,
+    labelBoxBkgColor: `#${surface}`,
+    labelBoxBorderColor: `#${border}`,
+    labelTextColor: `#${fg}`,
+    loopTextColor: `#${fg}`,
+    activationBkgColor: `#${surfaceAlt}`,
+    sequenceNumberColor: `#${bg}`,
+    sectionBkgColor: `#${surface}`,
+    altSectionBkgColor: `#${bg}`,
+    sectionBkgColor2: `#${surfaceAlt}`,
+    taskBkgColor: `#${surfaceAlt}`,
+    taskBorderColor: `#${border}`,
+    taskTextColor: `#${fg}`,
+    taskTextOutsideColor: `#${fg}`,
+    activeTaskBkgColor: `#${mixSrgb(palette.accent, bg, 0.28)}`,
+    activeTaskBorderColor: `#${palette.accent}`,
+    doneTaskBkgColor: `#${bg}`,
+    doneTaskBorderColor: `#${border}`,
+    critBkgColor: `#${mixSrgb(fg, bg, 0.45)}`,
+    critBorderColor: `#${fg}`,
+    todayLineColor: `#${palette.accent}`,
+    pie1: `#${surface}`,
+    pie2: `#${surfaceAlt}`,
+    pie3: `#${mixSrgb(palette.accent, bg, 0.18)}`,
+    pieTitleTextColor: `#${fg}`,
+    pieSectionTextColor: `#${fg}`,
+    pieStrokeColor: `#${border}`,
+  };
+}
+
 /** 扫描 Markdown，用占位图重写公式/Mermaid 并收集各自内容。 */
 function scan(markdown: string): { content: string; items: RenderItem[] } {
   const items: RenderItem[] = [];
@@ -96,7 +196,21 @@ function scan(markdown: string): { content: string; items: RenderItem[] } {
   return { content: rewritten, items };
 }
 
-export async function renderMathAndMermaidToImages(markdown: string): Promise<RichImageResult> {
+/**
+ * 公式/Mermaid 光栅化。`paletteTokens` 来自主题令牌（DocxStyle 的子集），
+ * Mermaid 图配色跟随当前预览主题；不传或令牌不全时按浅色默认画。
+ */
+export async function renderMathAndMermaidToImages(
+  markdown: string,
+  paletteTokens?: { codeBlockBackground?: unknown; codeBlockText?: unknown; link?: unknown },
+): Promise<RichImageResult> {
+  const palette: DiagramPalette = paletteTokens
+    ? {
+        background: normalizeHex(paletteTokens.codeBlockBackground, DEFAULT_DIAGRAM_PALETTE.background),
+        foreground: normalizeHex(paletteTokens.codeBlockText, DEFAULT_DIAGRAM_PALETTE.foreground),
+        accent: normalizeHex(paletteTokens.link, DEFAULT_DIAGRAM_PALETTE.accent),
+      }
+    : DEFAULT_DIAGRAM_PALETTE;
   const { content, items } = scan(markdown);
   if (items.length === 0) {
     return { content, images: {}, imageSizes: {} };
@@ -136,7 +250,7 @@ ${mermaidJs ? `<script>${mermaidJs}</script>` : ''}
 <script>
 (function () {
   if (!window.mermaid) { document.documentElement.dataset.ready = '1'; return; }
-  mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+  mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: ${JSON.stringify(mermaidThemeVariables(palette))}, securityLevel: 'loose' });
   var els = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid'));
   var remaining = els.length;
   if (remaining === 0) { document.documentElement.dataset.ready = '1'; return; }
@@ -167,7 +281,10 @@ ${mermaidJs ? `<script>${mermaidJs}</script>` : ''}
   const browser = await puppeteer.launch({ headless: true, executablePath: chromePath });
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 900, deviceScaleFactor: 1 });
+    // 测量用的窗口宽度。太窄的话稍宽的行内公式会在 KaTeX 内部折行，截出来的 PNG
+    // 本身就是两行（导出 Word 后看到「公式换行」，镜像 colamd-extend MEASURE_WIDTH）。
+    const MEASURE_WIDTH = 2000;
+    await page.setViewport({ width: MEASURE_WIDTH, height: 900, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: 'load' });
     // 等待 mermaid 渲染完成（无 mermaid 时页面立即置 ready）
     await page.waitForFunction("document.documentElement.dataset.ready === '1'", { timeout: 15000 })

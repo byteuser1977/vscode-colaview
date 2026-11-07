@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.0-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.1-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
@@ -212,11 +212,19 @@ npm run package
 
 ### Build System
 
-The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.9 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML, KaTeX stylesheet, Mermaid script) are copied to `out/` during build so they survive `.vscodeignore` packaging.
+The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.11 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML, KaTeX stylesheet, Mermaid script) are copied to `out/` during build so they survive `.vscodeignore` packaging.
 
 ## Changelog
 
-### v0.3.0 (Current)
+### v0.3.1 (Current)
+
+- **🔧 Engine Upgrade — ColaMD 2.7.11** — Inline math in table cells, CSS-driven list indent, block widget layout fixes, official CM6 typing commands.
+- **🎨 Word Mermaid Diagrams Follow Theme** — Diagram colors derived from the current preview theme's tokens (dark themes fall back to light), instead of mermaid's hardcoded `neutral`.
+- **🐛 Windows Word Code Blocks Fixed** — Platform mono font in all four `w:rFonts` slots + CJK `eastAsia` font, explicit left alignment, light border, `noProof` (port of ColaMD-extend #202).
+- **🐛 Inline Formulas No Longer Wrap** — Wider (2000px) measurement viewport before capture.
+- **🐛 HTML/PDF Diagrams Follow Theme + No Zoom Controls** — Export CSS matches serialized pele SVG wrappers to restore `--pele-*` variables; editor-only zoom controls hidden on paper.
+
+### v0.3.0
 
 - **📝 Word Export (`.docx`)** — Ported from ColaMD-extend. High-fidelity Word export with headings, paragraphs, inline styles, code blocks, lists, tables, blockquotes, horizontal rules, images, footnotes, and rasterized KaTeX/Mermaid diagrams.
 - **🎨 Theme-Faithful Export** — New `theme-style.ts` conversion layer maps editor-only theme selectors (`#editor .cm-content .cm-md-*`) to semantic HTML selectors, so PDF/HTML/Word exports inherit the current preview theme's fonts, accent colors, table header styling and blockquote padding.

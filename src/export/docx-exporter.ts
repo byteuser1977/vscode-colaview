@@ -112,6 +112,14 @@ interface DocxContext {
   style: DocxStyle;
   bodyFont: string;
   monoFont: string;
+  /**
+   * 代码用的字体（含 eastAsia 槽位）。
+   * 以前只用 `font: monoFont` 字符串：docx 会把它同时写进 w:rFonts 的 ascii / hAnsi /
+   * cs / eastAsia 四个槽位，如果选中了 Windows 没有的字体（如 Menlo），Word 就整段
+   * 替换，代码块变成 ♣ ○ ◇ 这类符号乱码。eastAsia 单独给一个中文字体，代码里的
+   * 中文注释才不会乱码（镜像 colamd-extend aad3bf6 的修复）。
+   */
+  codeFont: { ascii: string; hAnsi: string; cs: string; eastAsia: string };
   bodySizeHalf: number;
   paragraphLine: number;
   codeSizeHalf: number;
@@ -238,6 +246,15 @@ function fontName(stack: string, mono: boolean): string {
 /** px → Word 的半磅值。 */
 function halfPoints(px: number): number {
   return Math.max(2, Math.round(px * 1.5));
+}
+
+/** 代码的 eastAsia 中文字体：按平台选一个 Word 认得的（镜像 colamd-extend aad3bf6）。 */
+function codeEastAsiaFont(): string {
+  return process.platform === 'darwin'
+    ? 'PingFang SC'
+    : process.platform === 'win32'
+      ? 'Microsoft YaHei'
+      : 'Noto Sans CJK SC';
 }
 
 /** em 距离 → twips（1px = 15 twips）。 */
@@ -387,9 +404,10 @@ function inlineRuns(
     } else if (node.type === 'inlineCode') {
       runs.push(new TextRun({
         text: node.value ?? '',
-        font: context.monoFont,
+        font: context.codeFont,
         size: context.codeSizeHalf,
         shading: { fill: context.style.inlineCodeBackground },
+        noProof: true, // 变量名不再带拼写红波浪线
         ...style,
       }));
     } else if (node.type === 'strong') {
@@ -570,6 +588,7 @@ function tableForNode(node: MarkdownNode, context: DocxContext): Table {
 }
 
 function codeParagraph(node: MarkdownNode, context: DocxContext, extra: IParagraphOptions = {}): Paragraph {
+  // 每一行自己一个 run，行间用 `<w:br/>`；空行也要留一个 break，不然空行会被吃掉。
   const lines = (node.value ?? '').replace(/\n+$/, '').split('\n');
   const children: ParagraphChild[] = lines.map((line, index) => (
     line === ''
@@ -577,17 +596,28 @@ function codeParagraph(node: MarkdownNode, context: DocxContext, extra: IParagra
       : new TextRun({
           text: line,
           break: index > 0 ? 1 : undefined,
-          font: context.monoFont,
+          font: context.codeFont,
           size: context.codeSizeHalf,
           color: context.style.codeBlockText,
+          noProof: true, // 变量名不再带拼写红波浪线
         })
   ));
   const codeLine = Math.round(context.style.bodySize * 0.875 * 1.6 * 15);
   const codePad = emTwips(context.style.bodySize, 1.0);
+  const codeBorder = { color: context.style.border, space: 4, style: BorderStyle.SINGLE, size: 4 };
   return new Paragraph({
     ...extra,
+    // 显式左对齐：不写的话继承默认样式，默认是两端对齐时每一行都会被拉满行宽，
+    // 键留在左边、值被顶到右边（镜像 colamd-extend aad3bf6）。
+    alignment: AlignmentType.LEFT,
     shading: { fill: context.style.codeBlockBackground },
     spacing: { before: codePad, after: codePad, line: codeLine, lineRule: LineRuleType.AT_LEAST },
+    border: {
+      top: codeBorder,
+      bottom: codeBorder,
+      left: codeBorder,
+      right: codeBorder,
+    },
     children,
   });
 }
@@ -860,10 +890,17 @@ export async function markdownToDocx(input: DocxExportInput): Promise<Buffer> {
   prepareLists(tree.children, listState);
   const remoteImages = await remoteImagesFor(tree);
 
+  const monoFont = fontName(style.monoFontStack, true);
   const context: DocxContext = {
     style,
     bodyFont: fontName(style.bodyFontStack, false),
-    monoFont: fontName(style.monoFontStack, true),
+    monoFont,
+    codeFont: {
+      ascii: monoFont,
+      hAnsi: monoFont,
+      cs: monoFont,
+      eastAsia: codeEastAsiaFont(),
+    },
     bodySizeHalf: halfPoints(style.bodySize),
     paragraphLine: Math.round(style.lineHeight * style.bodySize * 15),
     codeSizeHalf: halfPoints(style.bodySize * 0.875),
@@ -906,9 +943,11 @@ export async function exportWord(document: vscode.TextDocument): Promise<void> {
   const markdown = document.getText();
   const sourcePath = document.fileName;
 
-  const { content, images, imageSizes } = await renderMathAndMermaidToImages(markdown);
+  // 先取主题令牌：Mermaid 图的配色跟随当前预览主题（浅色跟随、深色回落浅色），
+  // 再用同一份令牌构建 Word 文档样式，两边保持一致。
   const themeCss = ThemeManager.loadThemeCSS(ThemeManager.getCurrentTheme());
   const style = buildDocxStyleFromThemeCss(themeCss);
+  const { content, images, imageSizes } = await renderMathAndMermaidToImages(markdown, style);
   const buffer = await markdownToDocx({ content, sourcePath, images, imageSizes, style });
 
   const defaultName = document.fileName.replace(/\.md$/i, '.docx');

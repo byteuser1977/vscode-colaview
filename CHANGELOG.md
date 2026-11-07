@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-11-07
+
+### Changed
+- **Engine upgrade: ColaMD 2.7.11** — `@bytechain.cn/colamd` bumped from 2.7.9 to 2.7.11, bringing upstream fixes: inline math rendered as formulas inside table cells, list indent handled purely by CSS (source spaces hidden), cursor misalignment with multi-digit ordered lists, block-level widget layout (no margin placeholders, diagram height re-measured after async render), and Enter/Backspace restored to official CodeMirror commands.
+
+### Fixed
+- Fixed **Word-exported code blocks breaking on Windows** — ported ColaMD-extend #202 fixes: code font now written into all four `w:rFonts` slots with a platform-appropriate mono font (Menlo/Consolas/DejaVu Sans Mono) plus a dedicated CJK `eastAsia` font (so Chinese comments no longer garble); explicit left alignment prevents justify-stretched lines; code blocks get a light border and `noProof` (no spell-check squiggles on identifiers, inline code included).
+- Fixed **Word-exported Mermaid diagrams not following the preview theme** — diagram colors are now derived from the current theme's tokens (surface/border mixes at 18%/28%/45%, same ratios as the editor), with dark themes falling back to the light palette. Previously hardcoded to mermaid's `neutral` theme.
+- Fixed **inline formulas wrapping in Word export** — the measurement viewport was widened to 2000px so wider formulas are not line-wrapped by KaTeX before capture (mirrors ColaMD-extend `MEASURE_WIDTH`).
+- Fixed **exported HTML/PDF diagrams losing theme colors and carrying zoom controls** — injected export CSS now matches serialized `<div><svg class="pele pele-…">` wrappers to restore the `--pele-*` variable mapping (mirrors ColaMD-extend a25b3f8), and hides the editor-only `.pele-zoom` controls that Chromium print cannot remove via scripts (mirrors `print-layout.ts`).
+
 ## [0.3.0] - 2026-11-06
 
 ### Added
