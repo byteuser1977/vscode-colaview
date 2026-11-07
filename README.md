@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.1-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
@@ -216,7 +216,14 @@ The project uses **esbuild** for bundling — the extension side (`out/extension
 
 ## Changelog
 
-### v0.3.1 (Current)
+### v0.3.2 (Current)
+
+- **🐛 Preview Blocks No Longer Vanish After Source View** — Fixed an engine bug (multi-line inline replace decorations are ignored by CodeMirror 6 on incremental updates): clicking a mermaid diagram / multi-line block formula to view its source, then clicking away, no longer makes the whole block disappear. Patched via `patch-package`; fix also applied upstream in ColaMD-extend.
+- **🐛 Word Export Images Fixed** — puppeteer v25 screenshot returns `Uint8Array`; the previous base64 conversion produced corrupt data so formulas/diagrams appeared as placeholder text in the `.docx`. Now converted with `Buffer.from()`.
+- **🐛 Word Formula Glyphs Fixed** — KaTeX fonts are inlined as base64 into the screenshot page (the relative `fonts/*.woff2` URLs could not resolve), so formulas render with proper KaTeX fonts.
+- **🎨 Exports Match Preview Colors** — The engine's theme-scoped body rules (bold/inline-code/heading accent colors per theme) are translated to semantic selectors and injected into HTML/PDF exports for all 12 themes.
+
+### v0.3.1
 
 - **🔧 Engine Upgrade — ColaMD 2.7.11** — Inline math in table cells, CSS-driven list indent, block widget layout fixes, official CM6 typing commands.
 - **🎨 Word Mermaid Diagrams Follow Theme** — Diagram colors derived from the current preview theme's tokens (dark themes fall back to light), instead of mermaid's hardcoded `neutral`.

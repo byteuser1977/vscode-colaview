@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.3.2 (2026-11-07)
+
+### 🐛 Preview: Blocks No Longer Vanish After Viewing Their Source
+
+Clicking a rendered mermaid diagram or block formula reveals its source (per ColaMD-extend's block-widget rule); clicking away is supposed to re-render it — but the whole block silently disappeared instead.
+
+**Root cause:** the engine rendered mermaid diagrams and multi-line block math as *inline* replace decorations spanning multiple lines. CodeMirror 6 only honors such decorations when the tree is built from scratch (initial load); on incremental updates the widget is never recreated — the decoration comparison even reports the change, but the render layer skips it, leaving an empty block.
+
+**Fix:** whole-line-covering replace decorations now use `block: true` (mermaid always; block math when the range covers full lines). Verified in a headless browser: mermaid / multi-line math / tables all reveal source and restore correctly. Applied via `patch-package` (`patches/@bytechain.cn+colamd+2.7.11.patch`, wired through `postinstall`) and committed upstream to ColaMD-extend's `live-preview.ts`.
+
+### 🐛 Word Export: Formulas & Diagrams Now Render Correctly
+
+Two independent bugs made every formula/diagram image in the exported `.docx` broken:
+
+1. **Corrupt image data** — puppeteer v25's `screenshot()` returns a `Uint8Array`; `Uint8Array.toString('base64')` ignores the argument and emits a comma-joined decimal byte string (`137,80,78,…`), which is not base64. The `.docx` image parser rejected it, so formulas/diagrams appeared as `[公式 1]` placeholder text. Screenshots are now converted with `Buffer.from()`.
+2. **Wrong glyph fonts** — the screenshot page inlines `katex.min.css`, but its relative `url(fonts/*.woff2)` references cannot resolve on a `page.setContent` page (about:blank base URL), so KaTeX fell back to system fonts. KaTeX fonts are now inlined as base64 data URIs at render time; the build also copies the font files to `out/assets/katex-fonts/` for packaged installs.
+
+### 🎨 Exports Match the Preview's Theme Colors
+
+The engine's `colamd.css` carries per-theme body rules (`body.theme-x .cm-content .cm-md-strong`, inline code colors, heading colors, table header styling) that the exported semantic HTML could not match. These rules are now extracted from `colamd.css`, translated to semantic selectors (`body.theme-x .colamd-document strong` …), and injected into HTML/PDF exports — so exports match the preview (and ColaMD-extend) for all 12 built-in themes, including the ones whose accent rules only exist in the engine layer (sepia / dark / notion / midnight / writer).
+
+---
+
 ## v0.3.1 (2026-11-07)
 
 ### 🔧 Engine Upgrade — ColaMD 2.7.11

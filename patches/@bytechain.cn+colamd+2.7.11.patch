@@ -1,0 +1,22 @@
+diff --git a/node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js b/node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js
+index 371c127..b629313 100644
+--- a/node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js
++++ b/node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js
+@@ -25981,7 +25981,7 @@ function NF(t, e) {
+     e.push({
+       from: n.from,
+       to: n.to,
+-      deco: Wt.replace({ widget: new jF(n.code, n.block, n.from, n.to) })
++      deco: Wt.replace({ widget: new jF(n.code, n.block, n.from, n.to), block: n.block && (function(t, e, r) { return t.doc.lineAt(e).from === e && t.doc.lineAt(Math.min(r, t.doc.length)).to === r; })(t, n.from, n.to) })
+     });
+   }
+ }
+@@ -26071,7 +26071,7 @@ function KF(t, e, r) {
+     O.trim() && e.push({
+       from: n.from,
+       to: n.to,
+-      deco: Wt.replace({ widget: new FF(O, `${n.from}:${O.length}`, n.from, n.to) })
++      deco: Wt.replace({ widget: new FF(O, `${n.from}:${O.length}`, n.from, n.to), block: !0 })
+     });
+   });
+ }

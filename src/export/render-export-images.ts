@@ -55,6 +55,49 @@ function readIfExists(p: string | null): string | null {
   }
 }
 
+/**
+ * 把 katex.min.css 里相对路径的字体 URL 换成 base64 data URI。
+ *
+ * 公式截图页通过 page.setContent 加载（about:blank 基准），CSS 内联后
+ * `url(fonts/KaTeX_*.woff2)` 解析不到任何文件 —— KaTeX 全部退回回退字体，
+ * 公式字形错乱（问题表现就是「导出到 Word 时公式没有正确渲染」）。
+ * 字体优先取 CSS 同级的 fonts/ 目录，其次 out/assets/katex-fonts/，
+ * 最后回退 node_modules 的 katex 发行目录。
+ */
+function inlineKatexFonts(css: string, cssPath: string): string {
+  const candidates = [
+    path.resolve(path.dirname(cssPath), 'fonts'),
+    path.resolve(__dirname, 'assets', 'katex-fonts'),
+  ];
+  try {
+    const katexDist = path.dirname(require.resolve('katex/package.json'));
+    candidates.push(path.join(katexDist, 'dist', 'fonts'), path.join(katexDist, 'fonts'));
+  } catch {
+    /* ignore */
+  }
+  const fontDir = candidates.find((dir) => fs.existsSync(dir));
+  if (!fontDir) return css;
+
+  const cache = new Map<string, string>();
+  const load = (file: string): string | null => {
+    if (cache.has(file)) return cache.get(file)!;
+    let dataUri: string | null = null;
+    try {
+      const buf = fs.readFileSync(path.join(fontDir, file));
+      dataUri = `data:font/woff2;base64,${buf.toString('base64')}`;
+    } catch {
+      /* ignore */
+    }
+    cache.set(file, dataUri ?? '');
+    return dataUri;
+  };
+
+  return css.replace(/url\(\s*['"]?(fonts\/[^)'"]+)['"]?\s*\)/g, (match, file: string) => {
+    const dataUri = load(file);
+    return dataUri ? `url(${dataUri})` : match;
+  });
+}
+
 /** 是否为纯数字/货币式内容（避免把 "$5.99" 之类误判为行内公式）。 */
 function isPlainNumber(s: string): boolean {
   return /^[\d\s.,%\-+()]*$/.test(s);
@@ -216,7 +259,10 @@ export async function renderMathAndMermaidToImages(
     return { content, images: {}, imageSizes: {} };
   }
 
-  const katexCss = readIfExists(assetPath('katex', path.join('dist', 'katex.min.css')));
+  const katexCssPath = assetPath('katex', path.join('dist', 'katex.min.css'));
+  const katexCssRaw = readIfExists(katexCssPath);
+  // 字体转 base64 内联：page.setContent 的页面解析不到相对字体路径
+  const katexCss = katexCssRaw && katexCssPath ? inlineKatexFonts(katexCssRaw, katexCssPath) : null;
   const mermaidJs = readIfExists(assetPath('mermaid', path.join('dist', 'mermaid.min.js')));
   const useMathml = !katexCss;
 
@@ -299,7 +345,11 @@ ${mermaidJs ? `<script>${mermaidJs}</script>` : ''}
       if (!handle) continue;
       const box = await handle.boundingBox();
       if (!box || box.width < 1 || box.height < 1) continue;
-      const shot = (await handle.screenshot({ type: 'png' })) as Buffer;
+      // puppeteer v25 起截图返回 Uint8Array（TypedArray 的 toString 会输出
+      // 「137,80,78,…」逗号十进制串而不是 base64），必须先转 Buffer，
+      // 否则 Word 里的图片数据全是坏的 —— 表现为图表/公式没有被正确渲染。
+      const raw = (await handle.screenshot({ type: 'png' })) as Buffer | Uint8Array;
+      const shot = Buffer.isBuffer(raw) ? raw : Buffer.from(raw as Uint8Array);
       if (!shot || shot.length === 0) continue;
 
       images[item.name] = `data:image/png;base64,${shot.toString('base64')}`;

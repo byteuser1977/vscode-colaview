@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.1-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
@@ -216,7 +216,14 @@ npm run package
 
 ## 更新日志
 
-### v0.3.1（当前版本）
+### v0.3.2（当前版本）
+
+- **🐛 修复预览中块级内容「看源码后消失」** — 引擎 bug（跨行 inline replace 装饰在 CM6 增量更新时不会被重建）：点击 mermaid 图 / 多行块公式查看源码后再点走，整块内容不再消失。通过 `patch-package` 固化补丁，修复同步提交到 ColaMD-extend 上游。
+- **🐛 修复 Word 导出图片损坏** — puppeteer v25 截图返回 `Uint8Array`，此前的 base64 转换产出的是逗号十进制串，`.docx` 里公式/图表全部变成占位文本。现改用 `Buffer.from()` 转换。
+- **🐛 修复 Word 公式字形错乱** — KaTeX 字体以 base64 内联进截图页（相对 `fonts/*.woff2` 路径无法解析），公式以正确的 KaTeX 字体渲染。
+- **🎨 导出正文颜色与预览一致** — 引擎 colamd.css 中各主题的正文差异化规则（加粗/行内代码/标题配色）被翻译为语义化选择器并注入 HTML/PDF 导出，覆盖全部 12 套主题。
+
+### v0.3.1
 
 - **🔧 引擎升级 — ColaMD 2.7.11** — 表格单元格内的行内公式成图、列表缩进纯 CSS 分派、块级 widget 布局修复、回车/退格回归 CM6 官方命令。
 - **🎨 Word 导出 Mermaid 配色跟随主题** — 图表配色从当前预览主题令牌推导（深色主题回落浅色），替代原来写死的 mermaid `neutral`。

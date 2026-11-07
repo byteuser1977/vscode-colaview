@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",
@@ -161,7 +161,8 @@
     "watch": "node esbuild.js --watch",
     "pretest": "npm run build",
     "test": "node ./out/test/runTest.js",
-    "package": "vsce package"
+    "package": "vsce package",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@bytechain.cn/colamd": "2.7.11",
@@ -181,6 +182,7 @@
     "@vscode/vsce": "^3.0.0",
     "esbuild": "^0.28.0",
     "eslint": "^9.0.0",
+    "patch-package": "^8.0.1",
     "typescript": "^5.7.0"
   }
 }

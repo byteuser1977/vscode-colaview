@@ -101,6 +101,27 @@ export function translateThemeCssForExport(themeCss: string): string {
 }
 
 /**
+ * 从 colamd.css（引擎内置样式）里提取主题作用域的正文规则并翻译成导出可用的语义选择器。
+ *
+ * 背景：各主题的正文差异化规则（加粗/行内代码/标题配色、表格表头、引用块等）以
+ * `body.theme-x .cm-content .cm-md-*` 形式写在引擎的 colamd.css 里，导出 HTML 虽然原样
+ * 内联了 colamd.css，但导出文档是语义化结构（.colamd-document strong 等），这些规则
+ * 全部无法命中 —— 表现为导出的加粗、行内代码等颜色与预览/ColaMD-extend 不一致。
+ * 这里按主题抽出这些规则，套用与 translateThemeCssForExport 相同的映射翻译后返回。
+ */
+export function translateEngineThemeCssForExport(colamdCss: string): string {
+    if (!colamdCss) return '';
+
+    // 抽出所有 body.theme-* 作用域、且作用于编辑器内容层的规则块
+    const ruleRe = /body\.theme-[a-z0-9-]+[^{}]*\.cm-content[^{}]*\{[^}]*\}/g;
+    const rules = colamdCss.match(ruleRe);
+    if (!rules || rules.length === 0) return '';
+
+    const out = rules.join('\n');
+    return translateThemeCssForExport(out);
+}
+
+/**
  * 从主题 CSS 构造 Word 导出用的样式令牌（docx 的 DocxStyle）。只覆盖能可靠取到的字段，
  * 其余由 markdownToDocx 的 normalizeStyle 回退到默认浅色样式。颜色返回原始值（hex），
  * 由 docx-exporter 的 hexColor 归一化。

@@ -70,6 +70,12 @@ function copyResources() {
     if (fs.existsSync(katexCss)) {
         copies.push({ src: katexCss, dst: 'out/assets/katex.min.css' });
     }
+    // KaTeX 字体：Word 导出的公式截图页会把 katex.min.css 内联进 data: 页面，
+    // 相对字体 URL 解析不到，必须带上字体文件（运行时转 base64 内联）。
+    const katexFonts = 'node_modules/katex/dist/fonts';
+    if (fs.existsSync(katexFonts)) {
+        copies.push({ src: katexFonts, dst: 'out/assets/katex-fonts' });
+    }
     const mermaidJs = 'node_modules/mermaid/dist/mermaid.min.js';
     if (fs.existsSync(mermaidJs)) {
         copies.push({ src: mermaidJs, dst: 'out/assets/mermaid.min.js' });

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2026-11-07
+
+### Fixed
+- Fixed **preview blocks vanishing after viewing their source** — the engine (ColaMD 2.7.11) rendered mermaid diagrams and multi-line block math as *inline* replace decorations spanning multiple lines; CodeMirror 6 only honors such decorations on the initial build, so after clicking into a diagram/formula (source revealed) and clicking away, the widget was never recreated and the whole block disappeared. Fixed with `block: true` for whole-line-covering replace decorations (mermaid always, block math when covering full lines). Patched via `patch-package` (`patches/`); the same fix is applied upstream in ColaMD-extend `live-preview.ts`.
+- Fixed **Word export producing broken images** — puppeteer v25's `screenshot()` returns a `Uint8Array`; calling `.toString('base64')` on a TypedArray yields a comma-joined decimal byte string instead of base64, so every formula/diagram image embedded in the `.docx` was corrupt and exported as placeholder text. Screenshots are now converted with `Buffer.from()`.
+- Fixed **Word-exported formulas rendering with wrong glyphs** — the formula screenshot page inlines `katex.min.css`, but its relative `url(fonts/*.woff2)` references can't resolve on a `page.setContent` (about:blank) page, so KaTeX fell back to system fonts. KaTeX fonts are now inlined as base64 data URIs at render time (and the font files are copied to `out/assets/katex-fonts/` by the build).
+
+### Changed
+- **Export HTML/PDF now carries the engine's theme-scoped body rules** — the per-theme accent rules (`body.theme-x .cm-content .cm-md-strong`, inline code colors, heading colors, table header styling...) that live in the engine's `colamd.css` are extracted and translated to semantic selectors (`body.theme-x .colamd-document strong` ...) and injected into exports, so exported documents match the preview and ColaMD-extend rendering for all 12 built-in themes.
+
 ## [0.3.1] - 2026-11-07
 
 ### Changed

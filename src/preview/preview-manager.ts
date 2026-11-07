@@ -6,7 +6,7 @@ import { ThemeManager } from '../themes/theme-manager';
 import { exportHTML } from '../export/html-exporter';
 import { exportPDF } from '../export/pdf-exporter';
 import { exportWord } from '../export/docx-exporter';
-import { translateThemeCssForExport } from '../export/theme-style';
+import { translateThemeCssForExport, translateEngineThemeCssForExport } from '../export/theme-style';
 
 function getNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -404,6 +404,11 @@ export class PreviewManager {
         // 翻译成语义选择器后注入到 </head> 前，保证优先级最高。
         const themeOverrideCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(theme));
         const THEME_FIX = themeOverrideCss ? `<style>${themeOverrideCss}</style>` : '';
+        // colamd.css 里还有一批 body.theme-X .cm-content .cm-md-* 的正文差异化规则
+        // （sepia/dark/notion/midnight/writer 等主题的加粗、行内代码、标题配色只存在于
+        // 这一层），导出文档的语义化结构无法命中原选择器 —— 抽取并翻译后一并注入，
+        // 导出的正文颜色才能跟预览一致。
+        const ENGINE_THEME_FIX = `<style>${translateEngineThemeCssForExport(this.loadEngineColamdCss())}</style>`;
         const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
         // colamd.css 的 --pele-* 变量挂在 `.cm-content .cm-md-mermaid` 上，而导出文档里
         // mermaid 块被序列化成不带类名的 `<div><svg class="pele pele-…">…</svg></div>`，
@@ -428,7 +433,21 @@ export class PreviewManager {
 .colamd-document div:has(> svg.pele) svg { max-width: 100%; height: auto; }
 .colamd-document .pele-zoom { display: none !important; }
 </style>`;
-        return patched.replace('</head>', PRINT_FIX + '\n' + MERMAID_FIX + '\n' + THEME_FIX + '\n</head>');
+        return patched.replace('</head>', PRINT_FIX + '\n' + MERMAID_FIX + '\n' + ENGINE_THEME_FIX + '\n' + THEME_FIX + '\n</head>');
+    }
+
+    /**
+     * 读取引擎自带的 colamd.css（与 WebView 加载的是同一份），供导出侧抽取主题规则。
+     */
+    private loadEngineColamdCss(): string {
+        const outDir = path.join(this.context.extensionPath, 'out', 'preview', 'webview');
+        const srcDir = path.join(this.context.extensionPath, 'src', 'preview', 'webview');
+        const webviewDir = fs.existsSync(outDir) ? outDir : srcDir;
+        try {
+            return fs.readFileSync(path.join(webviewDir, 'colamd.css'), 'utf-8');
+        } catch {
+            return '';
+        }
     }
 
     sendTheme(theme: string): void {
