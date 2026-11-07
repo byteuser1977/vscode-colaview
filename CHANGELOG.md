@@ -7,9 +7,13 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed **Mermaid diagrams left-aligned in PDF/HTML exports** — the engine serializes mermaid blocks as class-stripped `<p><svg class="pele pele-…">…</svg></p>`, so the previous export rule (`div:has(> svg.pele)`) never matched and its `text-align: center` never applied: diagrams were centered in the preview but flush-left on paper. Centering now lives on `svg.pele` itself (`display: block; margin: 0 auto`), independent of the wrapper element.
 - Fixed **Mermaid diagram background not matching ColaMD-extend** — diagram colors are derived from the theme's code-block background (`--code-block-bg`), and in ColaMD the diagram sits on that block background. ColaView preview and export rendered it on the plain page background instead. Both now paint the same block behind the diagram (code-block background, 6px radius, `0.8em 1em` padding), so Elegant/Bear (light themes with dark code blocks) match ColaMD's dark diagram block.
+- Fixed **Mermaid diagram colors drifting from the preview in PDF/HTML exports for non-Elegant themes** — exports re-derived the `--pele-*` tokens on a wrapper selector that never matched the serialized `<p><svg class="pele">` markup, so diagrams fell back to pele's built-in light palette (dark nodes/edges on dark themes, light gray surfaces where the theme wanted the code-block tone). Exports now use the runtime `--pele-*` values that `buildExportHTML` collects from the preview's `.cm-md-mermaid` into `:root`; a token block using the engine's own derivation is injected only when those runtime values are absent (e.g. no rendered mermaid node at export time).
 
 ### Changed
-- `src/preview/webview/index.html` gives `.cm-md-mermaid` the code-block background in the preview; `src/preview/preview-manager.ts` applies the same block, plus the centering rule, to the serialized mermaid wrapper in HTML/PDF exports.
+- `src/preview/webview/index.html` gives `.cm-md-mermaid` the code-block background in the preview; `src/preview/preview-manager.ts` applies the same block, plus the centering rule, to the serialized mermaid wrapper in HTML/PDF exports, and no longer redeclares `--pele-*` on the exported SVG.
+
+### Removed
+- Ineffective settings removed from the extension manifest: `colaview.plugins.math` and `colaview.plugins.mermaid` (no-ops since v0.3.0 — math and Mermaid are built into the engine), `colaview.pdfMethod` and `colaview.customThemesPath` (never read by the extension). The dead `togglePlugin` message plumbing and the no-op `onDidChangeConfiguration` listeners they fed are gone too. Remaining settings: `colaview.theme`, `colaview.autoPreview`, `colaview.scrollSync`.
 
 ## [0.3.2] - 2026-11-07
 

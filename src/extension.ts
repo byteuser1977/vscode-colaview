@@ -42,17 +42,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    vscode.workspace.onDidChangeConfiguration(e => {
-        if (!previewManager) return;
-        const cfg = vscode.workspace.getConfiguration('colaview');
-        if (e.affectsConfiguration('colaview.plugins.math')) {
-            previewManager.togglePlugin('math', cfg.get('plugins.math', true));
-        }
-        if (e.affectsConfiguration('colaview.plugins.mermaid')) {
-            previewManager.togglePlugin('mermaid', cfg.get('plugins.mermaid', true));
-        }
-    });
-
     console.log('ColaView: activated');
 }
 

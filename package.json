@@ -117,34 +117,10 @@
           ],
           "description": "Visual theme for preview and export"
         },
-        "colaview.plugins.math": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable KaTeX math formula rendering"
-        },
-        "colaview.plugins.mermaid": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable Mermaid diagram rendering"
-        },
-        "colaview.pdfMethod": {
-          "type": "string",
-          "default": "puppeteer",
-          "enum": [
-            "puppeteer",
-            "webviewPrint"
-          ],
-          "description": "PDF export method"
-        },
         "colaview.autoPreview": {
           "type": "boolean",
           "default": false,
           "description": "Auto show preview on opening Markdown"
-        },
-        "colaview.customThemesPath": {
-          "type": "string",
-          "default": "",
-          "description": "Custom theme CSS directory path"
         },
         "colaview.scrollSync": {
           "type": "boolean",

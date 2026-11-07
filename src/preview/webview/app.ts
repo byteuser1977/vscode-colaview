@@ -198,11 +198,6 @@ window.addEventListener('message', async (event: MessageEvent) => {
             handle.applyTheme('custom:' + themeName, data.css);
             break;
         }
-        case 'togglePlugin': {
-            // 2.7.9 不再支持 togglePlugin — math 和 mermaid 是内置的
-            // 此消息保留但不再执行操作，避免旧配置项报错
-            break;
-        }
         case 'themeList': {
             themeListData = {
                 builtins: data.builtins || [],

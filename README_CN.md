@@ -105,14 +105,8 @@ my-project/
 | 配置 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `colaview.theme` | `string` | `"elegant"` | 预览主题：`light`、`dark`、`elegant`、`sepia`、`notion`、`bear`、`writer`、`solarized-dark`、`nord`、`gruvbox`、`dracula`、`midnight` 或任意自定义主题名 |
-| `colaview.plugins.math` | `boolean` | `true` | *(已废弃，v0.3.0 起默认启用)* KaTeX 已内置于 ColaMD 引擎，无法单独关闭 |
-| `colaview.plugins.mermaid` | `boolean` | `true` | *(已废弃，v0.3.0 起默认启用)* Mermaid 已内置于 ColaMD 引擎，无法单独关闭 |
-| `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF 引擎：`puppeteer` 或 `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | 打开 `.md` 文件时自动显示预览 |
-| `colaview.customThemesPath` | `string` | `""` | 自定义主题 CSS 目录路径 |
 | `colaview.scrollSync` | `boolean` | `false` | **实验性功能** — 启用编辑器与预览面板的滚动同步 |
-
-> **关于插件开关：** v0.3.0 起，数学公式和 Mermaid 图表是 CodeMirror 6 版 ColaMD 引擎的内置功能，始终启用。`colaview.plugins.math` 和 `colaview.plugins.mermaid` 配置项为向后兼容保留，但已不再生效。
 
 ## 支持的语法
 
@@ -220,6 +214,7 @@ npm run package
 
 - **🐛 修复 PDF/HTML 导出中 Mermaid 图未居中** — 引擎把 mermaid 块序列化成不带类名的 `<p><svg class="pele pele-…">…</svg></p>`，此前的 `div:has(> svg.pele)` 导出规则匹配不到，居中在纸面上失效。现把居中规则落到 `svg.pele` 自身（`display: block; margin: 0 auto`），与父级是 `<p>` 还是 `<div>` 无关。
 - **🎨 Mermaid 图背景色与 ColaMD-extend 一致** — 图表配色按主题的代码块底色（`--code-block-bg`）推导，ColaMD 中图就画在这块底色上。预览与 HTML/PDF 导出现在同样给图加代码块底色（6px 圆角、`0.8em 1em` 内边距），不再浮在浅色页面上；Elegant/Bear（浅色页面配深色代码块）此前差异最明显。
+- **🎨 修复非 Elegant 主题导出后 Mermaid 图内配色与预览不一致** — 导出端此前在 `div:has(> svg.pele)` 上重新声明 `--pele-*`，而引擎序列化出来的是 `<p><svg class="pele">` 结构，选择器从不命中，图只能落回 pele 内置浅色配色（深色主题下节点/连线/文字明显偏色）。现改为直接使用 `buildExportHTML` 从预览 `.cm-md-mermaid` 收集进 `:root` 的运行时令牌；仅在确实缺失时才按引擎同一公式补一份兜底。
 
 ### v0.3.2
 

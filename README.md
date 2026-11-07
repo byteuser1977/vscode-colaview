@@ -105,14 +105,8 @@ Import custom CSS: `Ctrl+Shift+P` → "ColaView MD: Import Custom Theme..." or v
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `colaview.theme` | `string` | `"elegant"` | Preview theme: `light`, `dark`, `elegant`, `sepia`, `notion`, `bear`, `writer`, `solarized-dark`, `nord`, `gruvbox`, `dracula`, `midnight`, or any custom theme name |
-| `colaview.plugins.math` | `boolean` | `true` | *(Deprecated, always-on since v0.3.0)* KaTeX is built into the ColaMD engine and cannot be disabled |
-| `colaview.plugins.mermaid` | `boolean` | `true` | *(Deprecated, always-on since v0.3.0)* Mermaid is built into the ColaMD engine and cannot be disabled |
-| `colaview.pdfMethod` | `string` | `"puppeteer"` | PDF engine: `puppeteer` or `webviewPrint` |
 | `colaview.autoPreview` | `boolean` | `false` | Auto-open preview for `.md` files |
-| `colaview.customThemesPath` | `string` | `""` | Directory for custom theme CSS files |
 | `colaview.scrollSync` | `boolean` | `false` | **Experimental** — Enable scroll sync between editor and preview |
-
-> **Note on plugin settings:** Since v0.3.0, math and mermaid rendering are integral parts of the CodeMirror 6 based ColaMD engine and are always enabled. The `colaview.plugins.math` and `colaview.plugins.mermaid` settings are retained for backward compatibility but no longer have any effect.
 
 ## Supported Syntax
 
@@ -220,6 +214,7 @@ The project uses **esbuild** for bundling — the extension side (`out/extension
 
 - **🐛 PDF/HTML Mermaid Diagrams Centered** — the engine serializes mermaid blocks as class-stripped `<p><svg class="pele pele-…">…</svg></p>`, so the previous `div:has(> svg.pele)` export rule never matched and diagrams were left-aligned on paper. Centering now applies to `svg.pele` itself (`display: block; margin: 0 auto`), independent of the wrapper element.
 - **🎨 Mermaid Diagram Background Matches ColaMD-extend** — diagrams are now drawn on the code-block background (`--code-block-bg`, 6px radius, `0.8em 1em` padding) in both the preview and HTML/PDF exports, matching ColaMD instead of floating on the plain page background (most visible with Elegant/Bear, whose dark code blocks sit on light pages).
+- **🎨 Mermaid Colors Match the Preview in Every Theme** — non-Elegant themes exported diagrams with different node/edge/label colors because the export re-declared `--pele-*` on a `div:has(> svg.pele)` selector that never matched the serialized `<p><svg class="pele">` markup, leaving pele's built-in palette in effect. Exports now use the runtime values collected from the preview into `:root`, with the derived token block injected only when those values are absent.
 
 ### v0.3.2
 

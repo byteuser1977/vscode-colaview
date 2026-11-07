@@ -16,6 +16,23 @@ Diagram colors are derived from the theme's code-block background (`--code-block
 
 The preview (`index.html`) now paints `.cm-md-mermaid` with the code-block background (6px radius, `0.8em 1em` padding), and the export CSS (`preview-manager.ts`) applies the same block to the serialized mermaid wrapper, so preview, PDF and HTML exports match ColaMD.
 
+### 🎨 Mermaid Colors Now Match the Preview in Every Theme
+
+With non-Elegant themes, diagrams in exported PDF/HTML used a different color set than the preview — nodes, edges and labels drifted toward pele's built-in light palette instead of the theme's own tones.
+
+**Root cause:** the export stylesheet re-declared the `--pele-*` color tokens on `div:has(> svg.pele)`, a selector that never matches the serialized `<p><svg class="pele">…</svg></p>` markup. The declarations were dead, and diagrams fell back to pele's defaults.
+
+**Fix:** exports now use the tokens that `buildExportHTML` already collects from the preview's `.cm-md-mermaid` into `:root` — those are the exact colors the preview renders with, including any explicit overrides from custom themes. The derived token block is injected only when the runtime values are missing (e.g. no rendered mermaid node at export time), so no theme-aware value is ever overwritten.
+
+### 🧹 Removed Ineffective Settings
+
+Four entries in the settings page did nothing, and they are now gone:
+
+- `colaview.plugins.math` / `colaview.plugins.mermaid` — no-ops since v0.3.0, because math and Mermaid are built into the engine and cannot be toggled.
+- `colaview.pdfMethod` / `colaview.customThemesPath` — never read by the extension (PDF always uses the local Chrome pipeline, themes always come from the workspace `.themes` directory).
+
+The dead `togglePlugin` message plumbing and no-op configuration listeners were removed with them. The settings page now shows only `colaview.theme`, `colaview.autoPreview` and `colaview.scrollSync`.
+
 ---
 
 ## v0.3.2 (2026-11-07)

@@ -44,7 +44,6 @@ export class PreviewManager {
     constructor(private context: vscode.ExtensionContext) {
         this.registerActiveEditorListener();
         this.registerScrollSyncListeners();
-        this.registerConfigurationListener();
     }
 
     private registerActiveEditorListener(): void {
@@ -132,18 +131,6 @@ export class PreviewManager {
             }, null, this.disposables);
         } catch (e) {
             console.error('[ColaView] registerScrollSyncListeners failed:', e);
-        }
-    }
-
-    private registerConfigurationListener(): void {
-        try {
-            vscode.workspace.onDidChangeConfiguration((event) => {
-                if (event.affectsConfiguration('colaview.scrollSync')) {
-                    // config changed, no action needed — will be checked on next scroll event
-                }
-            }, null, this.disposables);
-        } catch (e) {
-            console.error('[ColaView] registerConfigurationListener failed:', e);
         }
     }
 
@@ -419,10 +406,10 @@ export class PreviewManager {
         // （镜像 colamd-extend print-layout.ts 的修复；Chromium 打印不执行脚本，
         // pele 没机会收回它们，控件会叠在图上进 PDF）。
         const MERMAID_FIX = `<style>
-/* 图表配色是按 --code-block-bg（代码块底色）推出来的，图和代码块是同一块底：
-   预览里它浮在代码块底色上，导出的纸面上也要给同一块底，否则整块背景色
-   和 ColaMD 导出对不上。引擎未来若改回保留类名的 <div class="cm-md-mermaid">，
-   第一条选择器继续命中。 */
+/* 图表配色不要在这里重新推导：buildExportHTML 已经把预览里 `.cm-md-mermaid` 上
+   实际生效的 --pele-* 变量（含自定义主题显式覆盖的值）收进导出文档的 :root，
+   那才是“预览中的配色”。导出端只需要补两件引擎序列化时丢掉的东西：
+   代码块底色背景（图和代码块共用一块底）与居中。 */
 .colamd-document .cm-md-mermaid,
 .colamd-document p:has(> svg.pele) {
   background: var(--code-block-bg);
@@ -432,6 +419,16 @@ export class PreviewManager {
 }
 .colamd-document svg.pele {
   display: block; margin: 0 auto; max-width: 100%; height: auto;
+}
+.colamd-document .pele-zoom { display: none !important; }
+</style>`;
+        // 兜底：导出那一刻文档里没有已渲染的 mermaid 节点（虚拟滚动把它们卸载了）时，
+        // 引擎收集不到 --pele-*，SVG 只能落回 pele 的浅色兜底色 —— 深色主题下整张图
+        // 会明显偏离预览。仅在 :root 确实缺这组令牌时按引擎同一份公式补一次；
+        // 已有运行时值的场景一律不动，避免覆盖预览里的真实配色。
+        const PELE_TOKEN_FALLBACK = /:root\s*\{[^}]*--pele-bg\s*:/i.test(patched)
+            ? ''
+            : `<style>:root {
   --pele-bg: var(--code-block-bg);
   --pele-fg: var(--code-block-text, var(--text-color));
   --pele-muted: color-mix(in srgb, var(--code-block-text, var(--text-color)) 70%, var(--code-block-bg));
@@ -441,10 +438,8 @@ export class PreviewManager {
   --pele-border: color-mix(in srgb, var(--code-block-text, var(--text-color)) 45%, var(--code-block-bg));
   --pele-accent: var(--link-color);
   --pele-radius: 6px;
-}
-.colamd-document .pele-zoom { display: none !important; }
-</style>`;
-        return patched.replace('</head>', PRINT_FIX + '\n' + MERMAID_FIX + '\n' + ENGINE_THEME_FIX + '\n' + THEME_FIX + '\n</head>');
+}</style>`;
+        return patched.replace('</head>', PRINT_FIX + '\n' + MERMAID_FIX + '\n' + PELE_TOKEN_FALLBACK + '\n' + ENGINE_THEME_FIX + '\n' + THEME_FIX + '\n</head>');
     }
 
     /**
@@ -481,11 +476,6 @@ export class PreviewManager {
         if (!this.panel) return;
         const list = ThemeManager.getThemeList();
         this.panel.webview.postMessage({ type: 'themeList', ...list });
-    }
-
-    togglePlugin(id: string, enabled: boolean): void {
-        if (!this.panel) return;
-        this.panel.webview.postMessage({ type: 'togglePlugin', id, enabled });
     }
 
     private handleScrollSync(msg: { scrollPercent: number }): void {
