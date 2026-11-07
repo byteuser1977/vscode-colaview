@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.3-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
@@ -210,14 +210,13 @@ npm run package
 
 ## 更新日志
 
-### v0.3.3（当前版本）
+### v0.3.2（当前版本）
 
+- **🐛 修复 PDF/HTML 导出失败（`md is not defined`）** — 导出时报 "PDF export failed: md is not defined"：导出样式模板字符串里的一段 CSS 注释含未转义的反引号，提前闭合了模板字面量，剩余注释被当成 JavaScript 解析。现已转义反引号，注释保持为注释。
 - **🐛 修复 PDF/HTML 导出中 Mermaid 图未居中** — 引擎把 mermaid 块序列化成不带类名的 `<p><svg class="pele pele-…">…</svg></p>`，此前的 `div:has(> svg.pele)` 导出规则匹配不到，居中在纸面上失效。现把居中规则落到 `svg.pele` 自身（`display: block; margin: 0 auto`），与父级是 `<p>` 还是 `<div>` 无关。
 - **🎨 Mermaid 图背景色与 ColaMD-extend 一致** — 图表配色按主题的代码块底色（`--code-block-bg`）推导，ColaMD 中图就画在这块底色上。预览与 HTML/PDF 导出现在同样给图加代码块底色（6px 圆角、`0.8em 1em` 内边距），不再浮在浅色页面上；Elegant/Bear（浅色页面配深色代码块）此前差异最明显。
 - **🎨 修复非 Elegant 主题导出后 Mermaid 图内配色与预览不一致** — 导出端此前在 `div:has(> svg.pele)` 上重新声明 `--pele-*`，而引擎序列化出来的是 `<p><svg class="pele">` 结构，选择器从不命中，图只能落回 pele 内置浅色配色（深色主题下节点/连线/文字明显偏色）。现改为直接使用 `buildExportHTML` 从预览 `.cm-md-mermaid` 收集进 `:root` 的运行时令牌；仅在确实缺失时才按引擎同一公式补一份兜底。
-
-### v0.3.2
-
+- **🧹 移除无效配置项** — `colaview.plugins.math` / `colaview.plugins.mermaid`（自 v0.3.0 起无实际作用）与 `colaview.pdfMethod` / `colaview.customThemesPath`（从未被读取）已移除；保留 `colaview.theme`、`colaview.autoPreview`、`colaview.scrollSync`。
 - **🐛 修复预览中块级内容「看源码后消失」** — 引擎 bug（跨行 inline replace 装饰在 CM6 增量更新时不会被重建）：点击 mermaid 图 / 多行块公式查看源码后再点走，整块内容不再消失。通过 `patch-package` 固化补丁，修复同步提交到 ColaMD-extend 上游。
 - **🐛 修复 Word 导出图片损坏** — puppeteer v25 截图返回 `Uint8Array`，此前的 base64 转换产出的是逗号十进制串，`.docx` 里公式/图表全部变成占位文本。现改用 `Buffer.from()` 转换。
 - **🐛 修复 Word 公式字形错乱** — KaTeX 字体以 base64 内联进截图页（相对 `fonts/*.woff2` 路径无法解析），公式以正确的 KaTeX 字体渲染。

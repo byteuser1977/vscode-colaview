@@ -1,6 +1,14 @@
 # Release Notes
 
-## v0.3.3 (2026-11-07)
+## v0.3.2 (2026-11-07)
+
+### 🐛 PDF/HTML Export Fixed: `md is not defined`
+
+Exporting to PDF (or HTML) failed with "PDF export failed: md is not defined".
+
+**Root cause:** the export CSS injected by `patchExportHTML` is built as a JavaScript template literal, and a CSS comment inside it contained unescaped backticks (`` `.cm-md-mermaid` ``). The first backtick closed the template literal early, so the rest of the comment was parsed as JavaScript (`…template.cm - md - mermaid…`), throwing `ReferenceError: md is not defined` the moment an export ran.
+
+**Fix:** the backticks in the comment are escaped. The comment stays a comment and the export CSS is emitted verbatim.
 
 ### 🐛 PDF/HTML Export: Mermaid Diagrams Centered Again
 
@@ -32,10 +40,6 @@ Four entries in the settings page did nothing, and they are now gone:
 - `colaview.pdfMethod` / `colaview.customThemesPath` — never read by the extension (PDF always uses the local Chrome pipeline, themes always come from the workspace `.themes` directory).
 
 The dead `togglePlugin` message plumbing and no-op configuration listeners were removed with them. The settings page now shows only `colaview.theme`, `colaview.autoPreview` and `colaview.scrollSync`.
-
----
-
-## v0.3.2 (2026-11-07)
 
 ### 🐛 Preview: Blocks No Longer Vanish After Viewing Their Source
 

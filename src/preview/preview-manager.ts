@@ -406,7 +406,7 @@ export class PreviewManager {
         // （镜像 colamd-extend print-layout.ts 的修复；Chromium 打印不执行脚本，
         // pele 没机会收回它们，控件会叠在图上进 PDF）。
         const MERMAID_FIX = `<style>
-/* 图表配色不要在这里重新推导：buildExportHTML 已经把预览里 `.cm-md-mermaid` 上
+/* 图表配色不要在这里重新推导：buildExportHTML 已经把预览里 \`.cm-md-mermaid\` 上
    实际生效的 --pele-* 变量（含自定义主题显式覆盖的值）收进导出文档的 :root，
    那才是“预览中的配色”。导出端只需要补两件引擎序列化时丢掉的东西：
    代码块底色背景（图和代码块共用一块底）与居中。 */

@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.3-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
@@ -210,14 +210,13 @@ The project uses **esbuild** for bundling — the extension side (`out/extension
 
 ## Changelog
 
-### v0.3.3 (Current)
+### v0.3.2 (Current)
 
+- **🐛 PDF/HTML Export Fixed (`md is not defined`)** — exporting failed with "PDF export failed: md is not defined": a CSS comment inside the export stylesheet template literal contained unescaped backticks, which closed the literal early and made the parser treat part of the comment as JavaScript. Backticks are now escaped.
 - **🐛 PDF/HTML Mermaid Diagrams Centered** — the engine serializes mermaid blocks as class-stripped `<p><svg class="pele pele-…">…</svg></p>`, so the previous `div:has(> svg.pele)` export rule never matched and diagrams were left-aligned on paper. Centering now applies to `svg.pele` itself (`display: block; margin: 0 auto`), independent of the wrapper element.
 - **🎨 Mermaid Diagram Background Matches ColaMD-extend** — diagrams are now drawn on the code-block background (`--code-block-bg`, 6px radius, `0.8em 1em` padding) in both the preview and HTML/PDF exports, matching ColaMD instead of floating on the plain page background (most visible with Elegant/Bear, whose dark code blocks sit on light pages).
 - **🎨 Mermaid Colors Match the Preview in Every Theme** — non-Elegant themes exported diagrams with different node/edge/label colors because the export re-declared `--pele-*` on a `div:has(> svg.pele)` selector that never matched the serialized `<p><svg class="pele">` markup, leaving pele's built-in palette in effect. Exports now use the runtime values collected from the preview into `:root`, with the derived token block injected only when those values are absent.
-
-### v0.3.2
-
+- **🧹 Removed Ineffective Settings** — `colaview.plugins.math` / `colaview.plugins.mermaid` (no-ops since v0.3.0) and `colaview.pdfMethod` / `colaview.customThemesPath` (never read) are gone; remaining settings: `colaview.theme`, `colaview.autoPreview`, `colaview.scrollSync`.
 - **🐛 Preview Blocks No Longer Vanish After Source View** — Fixed an engine bug (multi-line inline replace decorations are ignored by CodeMirror 6 on incremental updates): clicking a mermaid diagram / multi-line block formula to view its source, then clicking away, no longer makes the whole block disappear. Patched via `patch-package`; fix also applied upstream in ColaMD-extend.
 - **🐛 Word Export Images Fixed** — puppeteer v25 screenshot returns `Uint8Array`; the previous base64 conversion produced corrupt data so formulas/diagrams appeared as placeholder text in the `.docx`. Now converted with `Buffer.from()`.
 - **🐛 Word Formula Glyphs Fixed** — KaTeX fonts are inlined as base64 into the screenshot page (the relative `fonts/*.woff2` URLs could not resolve), so formulas render with proper KaTeX fonts.
