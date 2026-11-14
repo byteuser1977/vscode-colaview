@@ -83,7 +83,7 @@ function scrollToLine(line: number, totalLines: number, topRatio: number = 0.3):
     });
 }
 
-function injectThemeCSS(css: string | undefined): void {
+function injectThemeCSS(css: string | undefined, themeName: string, isCustom: boolean): void {
     if (!css) return;
     let el = document.getElementById('colaview-theme-css');
     if (!el) {
@@ -91,7 +91,11 @@ function injectThemeCSS(css: string | undefined): void {
         el.id = 'colaview-theme-css';
         document.head.appendChild(el);
     }
-    el.textContent = css;
+    // 主题文件的变量写在 :root 上，而引擎把同一批变量写在 body.theme-X 上
+    // （特异性 0,1,1 > 0,1,0），直接注入 :root 会被引擎盖掉。这里把选择器
+    // 提升到 body.theme-X：与引擎同特异性且后注入，主题文件里的新值才生效。
+    const scope = isCustom ? 'body.theme-custom' : `body.theme-${themeName}`;
+    el.textContent = css.replace(/:root\b/g, `:root, ${scope}`);
 }
 
 /**
@@ -116,7 +120,7 @@ window.addEventListener('message', async (event: MessageEvent) => {
         case 'init': {
             try {
                 currentTheme = data.theme || 'elegant';
-                injectThemeCSS(data.themeCSS);
+                injectThemeCSS(data.themeCSS, currentTheme, !!(data.customCSS && data.theme));
 
                 // 2.7.9 API: 先创建编辑器（options 中不含 theme）
                 handle = await createColaMDEditor({
@@ -152,13 +156,13 @@ window.addEventListener('message', async (event: MessageEvent) => {
                 currentMarkdown = data.markdown;
             }
             if (data.theme) {
-                injectThemeCSS(data.themeCSS);
+                currentTheme = data.theme;
+                injectThemeCSS(data.themeCSS, data.theme, !!data.customCSS);
                 if (data.customCSS) {
                     handle.applyTheme('custom:' + data.theme, data.customCSS);
                 } else {
                     handle.applyTheme(data.theme);
                 }
-                currentTheme = data.theme;
                 ensureBodyThemeClass();
             }
             break;
@@ -182,13 +186,13 @@ window.addEventListener('message', async (event: MessageEvent) => {
         }
         case 'updateTheme': {
             if (!handle || !data.theme) return;
-            injectThemeCSS(data.themeCSS);
+            currentTheme = data.theme;
+            injectThemeCSS(data.themeCSS, data.theme, !!data.customCSS);
             if (data.customCSS) {
                 handle.applyTheme('custom:' + data.theme, data.customCSS);
             } else {
                 handle.applyTheme(data.theme);
             }
-            currentTheme = data.theme;
             ensureBodyThemeClass();
             break;
         }

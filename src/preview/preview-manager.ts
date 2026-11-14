@@ -389,7 +389,10 @@ export class PreviewManager {
 
         // 自定义主题的规则不在 colamd.css 里（内置主题的翻译规则是冗余兜底），
         // 翻译成语义选择器后注入到 </head> 前，保证优先级最高。
-        const themeOverrideCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(theme));
+        // 变量同样要提到 body.theme-X：引擎把内置主题变量写在 body.theme-X（0,1,1）
+        // 上，裸 :root（0,1,0）压不住它，导出会退回引擎旧值、和预览对不上。
+        const rawThemeCss = translateThemeCssForExport(ThemeManager.loadThemeCSS(theme));
+        const themeOverrideCss = rawThemeCss.replace(/:root\b/g, `:root, body.${themeClass}`);
         const THEME_FIX = themeOverrideCss ? `<style>${themeOverrideCss}</style>` : '';
         // colamd.css 里还有一批 body.theme-X .cm-content .cm-md-* 的正文差异化规则
         // （sepia/dark/notion/midnight/writer 等主题的加粗、行内代码、标题配色只存在于
@@ -399,22 +402,19 @@ export class PreviewManager {
         const PRINT_FIX = `<style>@media print { body > article.colamd-document:not(#_) { display: block !important; } }</style>`;
         // 导出文档里 mermaid 块被引擎序列化成不带类名的 `<p><svg class="pele pele-…">…</svg></p>`
         // （实测 block widget 以非 .cm-line 子节点进入序列化，走段落分支，不是
-        // `hte('mermaid')` 的 `<div>` 分支）—— .cm-md-mermaid 上的居中、--pele-* 令牌、
-        // 代码块底色都随之丢掉。所以这里按导出文档的实际结构再补一份：<p> 容器给代码块底色
-        // （图和代码块共用一块底，和 ColaMD 导出一致），SVG 用 block + 左右 auto 外边距居中。
+        // `hte('mermaid')` 的 `<div>` 分支）—— .cm-md-mermaid 上的居中、--pele-* 令牌
+        // 随之丢掉。所以这里按导出文档的实际结构补一份：<p> 容器补居中与上下留白。
+        // 图不铺底色（与 ColaMD-extend 一致：图画在页面底色上，配色按页面色推导）。
         // 图上的缩放控件（.pele-zoom）是编辑器的东西，不是文档内容 —— 导出纸面上藏掉
         // （镜像 colamd-extend print-layout.ts 的修复；Chromium 打印不执行脚本，
         // pele 没机会收回它们，控件会叠在图上进 PDF）。
         const MERMAID_FIX = `<style>
 /* 图表配色不要在这里重新推导：buildExportHTML 已经把预览里 \`.cm-md-mermaid\` 上
    实际生效的 --pele-* 变量（含自定义主题显式覆盖的值）收进导出文档的 :root，
-   那才是“预览中的配色”。导出端只需要补两件引擎序列化时丢掉的东西：
-   代码块底色背景（图和代码块共用一块底）与居中。 */
+   那才是“预览中的配色”。导出端只需要补引擎序列化时丢掉的居中与留白。 */
 .colamd-document .cm-md-mermaid,
 .colamd-document p:has(> svg.pele) {
-  background: var(--code-block-bg);
-  border-radius: 6px;
-  padding: 0.8em 1em;
+  padding: 0.8em 0;
   text-align: center;
 }
 .colamd-document svg.pele {
@@ -429,13 +429,13 @@ export class PreviewManager {
         const PELE_TOKEN_FALLBACK = /:root\s*\{[^}]*--pele-bg\s*:/i.test(patched)
             ? ''
             : `<style>:root {
-  --pele-bg: var(--code-block-bg);
-  --pele-fg: var(--code-block-text, var(--text-color));
-  --pele-muted: color-mix(in srgb, var(--code-block-text, var(--text-color)) 70%, var(--code-block-bg));
-  --pele-line: var(--code-block-text, var(--text-color));
-  --pele-surface: color-mix(in srgb, var(--code-block-text, var(--text-color)) 18%, var(--code-block-bg));
-  --pele-surface-alt: color-mix(in srgb, var(--code-block-text, var(--text-color)) 28%, var(--code-block-bg));
-  --pele-border: color-mix(in srgb, var(--code-block-text, var(--text-color)) 45%, var(--code-block-bg));
+  --pele-bg: var(--bg-color);
+  --pele-fg: var(--text-color);
+  --pele-muted: color-mix(in srgb, var(--text-color) 70%, var(--bg-color));
+  --pele-line: var(--text-color);
+  --pele-surface: color-mix(in srgb, var(--text-color) 18%, var(--bg-color));
+  --pele-surface-alt: color-mix(in srgb, var(--text-color) 28%, var(--bg-color));
+  --pele-border: color-mix(in srgb, var(--text-color) 45%, var(--bg-color));
   --pele-accent: var(--link-color);
   --pele-radius: 6px;
 }</style>`;

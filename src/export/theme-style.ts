@@ -122,29 +122,69 @@ export function translateEngineThemeCssForExport(colamdCss: string): string {
 }
 
 /**
+ * 深色主题导出 Word 时回落的浅色板，字段与 docx-exporter 的 DEFAULT_STYLE 一致。
+ * Word 是白纸，深色主题的浅色正文直接搬过去会看不见（镜像 colamd-extend
+ * docx-style.ts 的 LIGHT 常量：浅色跟随主题、深色整体回落浅色）。
+ */
+const LIGHT_TOKENS: Record<string, string> = {
+    text: '24292F',
+    secondaryText: '656D76',
+    link: '0969DA',
+    inlineCodeBackground: 'EFF1F3',
+    codeBlockBackground: 'F6F8FA',
+    codeBlockText: '24292F',
+    highlightBackground: 'FFF3BF',
+    blockquoteBorder: 'D0D7DE',
+    border: 'D0D7DE',
+    tableHeaderBackground: 'F6F8FA',
+};
+
+/** 取 #rgb / #rrggbb / #rrggbbaa 的主色，取不到返回 null。入参可带 `#`。 */
+function themeHex(value: string | undefined): string | null {
+    if (!value) return null;
+    const raw = value.trim().replace(/^#/, '');
+    if (/^[0-9a-f]{6}$/i.test(raw)) return raw.toUpperCase();
+    if (/^[0-9a-f]{3}$/i.test(raw)) return raw.split('').map((digit) => digit + digit).join('').toUpperCase();
+    if (/^[0-9a-f]{8}$/i.test(raw)) return raw.slice(0, 6).toUpperCase();
+    return null;
+}
+
+/** 感知亮度，用来判断主题底色是深是浅。入参不带 `#`。 */
+function hexLuminance(hex: string): number {
+    const channel = (index: number): number => (Number.parseInt(hex.slice(index, index + 2), 16) || 0) / 255;
+    return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+}
+
+/**
  * 从主题 CSS 构造 Word 导出用的样式令牌（docx 的 DocxStyle）。只覆盖能可靠取到的字段，
  * 其余由 markdownToDocx 的 normalizeStyle 回退到默认浅色样式。颜色返回原始值（hex），
  * 由 docx-exporter 的 hexColor 归一化。
+ *
+ * 深色主题（--bg-color 亮度 < 0.5）整体回落浅色板，与 Mermaid 导出挑浅色配色是同一条规则。
  */
 export function buildDocxStyleFromThemeCss(themeCss: string): Record<string, string | number | null> {
     const { vars, fontFamily, lineHeight } = parseThemeTokens(themeCss);
 
-    const style: Record<string, string | number | null> = {};
-    const put = (key: string, varName: string) => {
-        if (vars[varName]) style[key] = vars[varName];
-    };
+    const bg = themeHex(vars['--bg-color']);
+    const isDarkTheme = bg !== null && hexLuminance(bg) < 0.5;
+    const style: Record<string, string | number | null> = isDarkTheme ? { ...LIGHT_TOKENS } : {};
+    if (!isDarkTheme) {
+        const put = (key: string, varName: string) => {
+            if (vars[varName]) style[key] = vars[varName];
+        };
 
-    put('text', '--text-color');
-    put('secondaryText', '--text-secondary');
-    put('link', '--link-color');
-    put('inlineCodeBackground', '--code-bg');
-    put('codeBlockBackground', '--code-block-bg');
-    put('codeBlockText', '--code-block-text');
-    put('highlightBackground', '--highlight-bg');
-    put('blockquoteBorder', '--blockquote-border');
-    put('blockquoteBackground', '--blockquote-bg');
-    put('border', '--border-color');
-    put('tableHeaderBackground', '--table-header-bg');
+        put('text', '--text-color');
+        put('secondaryText', '--text-secondary');
+        put('link', '--link-color');
+        put('inlineCodeBackground', '--code-bg');
+        put('codeBlockBackground', '--code-block-bg');
+        put('codeBlockText', '--code-block-text');
+        put('highlightBackground', '--highlight-bg');
+        put('blockquoteBorder', '--blockquote-border');
+        put('blockquoteBackground', '--blockquote-bg');
+        put('border', '--border-color');
+        put('tableHeaderBackground', '--table-header-bg');
+    }
 
     // 主题若显式定义了等宽字体栈（如自定义 .themes 主题），一并带上
     if (vars['--font-mono']) style.monoFontStack = vars['--font-mono'];

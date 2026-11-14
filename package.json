@@ -1,7 +1,7 @@
 {
   "name": "vscode-colaview",
   "displayName": "ColaView MD",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "publisher": "bytechain",
   "description": "ColaMD Preview — Rich Markdown Preview & PDF/HTML Export for VSCode",
   "icon": "icon.png",
@@ -141,7 +141,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@bytechain.cn/colamd": "2.7.11",
+    "@bytechain.cn/colamd": "2.7.13-rc.1",
     "docx": "^9.15.2",
     "katex": "^0.16.47",
     "mermaid": "^11.15.0",

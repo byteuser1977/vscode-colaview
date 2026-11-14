@@ -119,6 +119,10 @@ function mixSrgb(a: string, b: string, weightA: number): string {
  * Mermaid 画图用的调色板令牌（镜像 colamd-extend diagramPrintPalette 的推导规则）。
  * 令牌与 DocxStyle 同源：「浅色跟随主题、深色整体回落浅色」，混合比例照抄
  * colamd.css 的 `.cm-md-mermaid`（18% / 28% / 45% 三档），两边要一起改。
+ *
+ * 但代码块的底不一定是纸的颜色：elegant、bear 是浅色主题配深色代码块，它们的
+ * codeBlockText 是浅色。Word 是白纸、PNG 也先铺白底，照搬就成了浅色线条落在
+ * 白纸上，所以这类主题改按正文色画（2026-11-14，与 colamd-extend 一致）。
  */
 export interface DiagramPalette {
   background: string;
@@ -140,6 +144,12 @@ function normalizeHex(value: unknown, fallback: string): string {
   if (/^[0-9a-f]{3}$/i.test(raw)) return raw.split('').map((digit) => digit + digit).join('').toUpperCase();
   if (/^[0-9a-f]{8}$/i.test(raw)) return raw.slice(0, 6).toUpperCase();
   return fallback;
+}
+
+/** 感知亮度，判断代码块底色是深是浅。入参不带 `#`。 */
+function isDarkHex(hex: string): boolean {
+  const channel = (index: number): number => (Number.parseInt(hex.slice(index, index + 2), 16) || 0) / 255;
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4) < 0.5;
 }
 
 /** 从主题令牌推导 Mermaid 的 themeVariables（theme: 'base'）。 */
@@ -245,15 +255,19 @@ function scan(markdown: string): { content: string; items: RenderItem[] } {
  */
 export async function renderMathAndMermaidToImages(
   markdown: string,
-  paletteTokens?: { codeBlockBackground?: unknown; codeBlockText?: unknown; link?: unknown },
+  paletteTokens?: { text?: unknown; codeBlockBackground?: unknown; codeBlockText?: unknown; link?: unknown },
 ): Promise<RichImageResult> {
-  const palette: DiagramPalette = paletteTokens
-    ? {
-        background: normalizeHex(paletteTokens.codeBlockBackground, DEFAULT_DIAGRAM_PALETTE.background),
-        foreground: normalizeHex(paletteTokens.codeBlockText, DEFAULT_DIAGRAM_PALETTE.foreground),
-        accent: normalizeHex(paletteTokens.link, DEFAULT_DIAGRAM_PALETTE.accent),
-      }
-    : DEFAULT_DIAGRAM_PALETTE;
+  const bodyText = normalizeHex(paletteTokens?.text, DEFAULT_DIAGRAM_PALETTE.foreground);
+  const codeBackground = normalizeHex(paletteTokens?.codeBlockBackground, DEFAULT_DIAGRAM_PALETTE.background);
+  const codeText = normalizeHex(paletteTokens?.codeBlockText, bodyText);
+  // 浅色主题配深色代码块（elegant / bear）时，codeBlockText 是浅色；Word 的白纸上
+  // 会糊成一片。这类主题改按页面正文色画，底色换成白纸。
+  const darkCodeBlock = isDarkHex(codeBackground);
+  const palette: DiagramPalette = {
+    background: darkCodeBlock ? 'FFFFFF' : codeBackground,
+    foreground: darkCodeBlock ? bodyText : codeText,
+    accent: normalizeHex(paletteTokens?.link, DEFAULT_DIAGRAM_PALETTE.accent),
+  };
   const { content, items } = scan(markdown);
   if (items.length === 0) {
     return { content, images: {}, imageSizes: {} };

@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.3-orange)](package.json)
 
 Rich Markdown preview & PDF/HTML/Word export for VS Code — powered by [ColaMD](https://github.com/byteuser1977/ColaMD-extend) rendering engine (CodeMirror 6 based).
 
@@ -206,11 +206,19 @@ npm run package
 
 ### Build System
 
-The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.11 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.4MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML, KaTeX stylesheet, Mermaid script) are copied to `out/` during build so they survive `.vscodeignore` packaging.
+The project uses **esbuild** for bundling — the extension side (`out/extension.js`) is a small CJS bundle with only VS Code API imports. The WebView side (`out/preview/webview/app.js`) is an IIFE bundle containing the full ColaMD 2.7.13-rc.1 rendering engine (CodeMirror 6 + Mermaid + KaTeX) — approximately 3.5MB unminified, gzip ~400KB. Resource files (CSS, WebView HTML, KaTeX stylesheet, Mermaid script) are copied to `out/` during build so they survive `.vscodeignore` packaging.
 
 ## Changelog
 
-### v0.3.2 (Current)
+### v0.3.3 (Current)
+
+- **🔧 Engine Upgrade — ColaMD 2.7.13-rc.1, No More Patches** — the CM6 whole-line replace-decoration fix (`block: true`, previously a `patch-package` patch) is now native to the engine and extended to tables and HTML blocks; the `patches/` directory is gone. The engine's mermaid palette is page-based as well.
+- **🎨 Mermaid Diagrams Drawn on the Page** — preview and HTML/PDF exports derive the `--pele-*` tokens from page colors (`--bg-color`/`--text-color`, 18%/28%/45% mixes) instead of code-block colors, and no longer paint a code-block background behind diagrams — matching ColaMD-extend 2.7.13-rc.1. Most visible with Elegant/Bear, which previously drew pale lines on the dark code block.
+- **🐛 Theme Variables Actually Apply Now** — the engine's `body.theme-x` variables (specificity 0,1,1) always beat the injected `:root` (0,1,0), so theme-file variable values were ignored in the preview. Theme CSS is now injected as `:root, body.theme-x`; exports apply the same scoping.
+- **🎨 All 12 Built-in Themes Synced with ColaMD-extend** — border colors refined in every theme; Dark/Midnight/Writer add strong/inline-code accents; Notion swaps link underlines for strong/URL colors; blockquote overrides trimmed; Elegant drops the dead `--table-border` variable.
+- **🎨 Word Export: Readable Colors on White Paper** — dark themes fall back entirely to the light palette; light themes with a dark code block (Elegant/Bear) draw diagrams on white with body-text color.
+
+### v0.3.2
 
 - **🐛 PDF/HTML Export Fixed (`md is not defined`)** — exporting failed with "PDF export failed: md is not defined": a CSS comment inside the export stylesheet template literal contained unescaped backticks, which closed the literal early and made the parser treat part of the comment as JavaScript. Backticks are now escaped.
 - **🐛 PDF/HTML Mermaid Diagrams Centered** — the engine serializes mermaid blocks as class-stripped `<p><svg class="pele pele-…">…</svg></p>`, so the previous `div:has(> svg.pele)` export rule never matched and diagrams were left-aligned on paper. Centering now applies to `svg.pele` itself (`display: block; margin: 0 auto`), independent of the wrapper element.

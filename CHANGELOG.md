@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2026-11-14
+
+### Changed
+- **Engine upgrade: ColaMD 2.7.13-rc.1** — `@bytechain.cn/colamd` bumped from 2.7.12 to 2.7.13-rc.1. The engine now ships the CM6 whole-line `block: true` replace-decoration fix natively (mermaid always, block math / HTML blocks when covering full lines, tables always), and its own `.cm-md-mermaid` palette is page-based. The `patch-package` patch is retired — no more node_modules patching.
+- **All 12 built-in theme files synced with ColaMD-extend** (the 2.7.12+ theme contract): refined border colors in every theme, Elegant drops the dead `--table-border` variable, Dark/Midnight/Writer add strong and inline-code accent colors, Notion replaces the link-underline rules with strong/URL colors, Dracula/Gruvbox/Nord/Midnight drop blockquote text overrides, Elegant/Sepia drop blockquote horizontal padding.
+- **Mermaid diagrams now render on the page, not on the code block** — preview and HTML/PDF exports derive the `--pele-*` tokens from `--bg-color`/`--text-color` (18%/28%/45% mixes, same ratios as the engine) instead of `--code-block-bg`/`--code-block-text`, and no longer paint a code-block background behind the diagram. This matches ColaMD-extend 2.7.13-rc.1: diagrams are dark-lines-on-paper in light themes and light-lines-on-dark in dark themes. Most visible with Elegant/Bear, which previously drew pale lines on the dark code-block background.
+- **Word export color rules hardened** (mirroring ColaMD-extend `docx-style.ts`) — dark themes fall back entirely to the light palette (Word is white paper; light-on-dark text would be invisible), and light themes with a dark code block (Elegant/Bear) render diagrams on a white background with the body text color instead of pale code-block text on white.
+
+### Fixed
+- **Theme-file variables were inert in the preview** — the engine writes the same variables on `body.theme-x` (specificity 0,1,1), which always beat the injected `:root` block (0,1,0), so the built-in and custom theme files' variable values never took effect in the preview (while their element rules did, producing mixed rendering). Theme CSS is now injected as `:root, body.theme-x` so it wins, and HTML exports apply the same scoping — preview and export stay identical.
+
+### Removed
+- `patches/` — the CM6 `block: true` patch is no longer needed with engine 2.7.13-rc.1 (`patch-package` stays wired through `postinstall` and simply finds nothing to apply).
+
 ## [0.3.2] - 2026-11-07
 
 ### Fixed

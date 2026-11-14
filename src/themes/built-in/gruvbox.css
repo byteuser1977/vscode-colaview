@@ -9,7 +9,7 @@
   --text-color: #ebdbb2;
   --text-secondary: #c5b5a5;
   --text-muted: #928374;
-  --border-color: #3c3836;
+  --border-color: #373432;
   --link-color: #83a598;
   --code-bg: rgba(235, 219, 178, 0.1);
   --code-block-bg: #1d2021;
@@ -31,10 +31,6 @@
 
 #editor .cm-content .cm-md-inlinecode {
   color: #b8bb26;
-}
-
-#editor .cm-content .cm-md-blockquote {
-  color: #bdae93;
 }
 
 #editor .cm-content .cm-md-hr {

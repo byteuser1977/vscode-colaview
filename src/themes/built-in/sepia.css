@@ -9,7 +9,7 @@
   --text-color: #4f4032;
   --text-secondary: #7b6b54;
   --text-muted: #9a8a72;
-  --border-color: #e2d7bf;
+  --border-color: #e7ddc7;
   --link-color: #9c5e29;
   --code-bg: rgba(122, 90, 51, 0.1);
   --code-block-bg: #ece2cb;
@@ -35,11 +35,8 @@
   border-bottom-style: dashed;
 }
 
-#editor .cm-content .cm-md-blockquote {
-  /* Horizontal only: a quote is one div per line in the editor, so vertical
-     padding would be added once for every line of the quote. */
-  padding-left: 24px;
-  padding-right: 20px;
+#editor .cm-content .cm-md-strong {
+  color: #7a5a33;
 }
 
 #editor .cm-content .cm-md-inlinecode {

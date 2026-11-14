@@ -9,7 +9,7 @@
   --text-color: #e6edf3;
   --text-secondary: #aab3bd;
   --text-muted: #8b949e;
-  --border-color: #30363d;
+  --border-color: #272d34;
   --link-color: #58a6ff;
   --code-bg: rgba(110, 118, 129, 0.3);
   --code-block-bg: #161b22;
@@ -17,4 +17,12 @@
   --table-header-bg: #161b22;
   --selection-bg: rgba(88, 166, 255, 0.2);
   --highlight-bg: rgba(210, 153, 34, 0.35);
+}
+
+#editor .cm-content .cm-md-strong {
+  color: #e6edf3;
+}
+
+#editor .cm-content .cm-md-inlinecode {
+  color: #ff7b72;
 }

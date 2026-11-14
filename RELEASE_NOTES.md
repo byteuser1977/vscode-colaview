@@ -1,5 +1,29 @@
 # Release Notes
 
+## v0.3.3 (2026-11-14)
+
+### 🔧 Engine Upgrade — ColaMD 2.7.13-rc.1, No More Patches
+
+`@bytechain.cn/colamd` bumped from 2.7.12 to 2.7.13-rc.1. The CM6 multi-line replace-decoration fix (`block: true` for whole-line replace decorations — previously carried as a `patch-package` patch) is now native to the engine, extended upstream to tables and HTML blocks as well. The `patches/` directory is gone; `patch-package` remains wired through `postinstall` but finds nothing to apply.
+
+### 🎨 Mermaid Diagrams Drawn on the Page
+
+Diagrams used to sit on the theme's code-block background with colors derived from `--code-block-bg`/`--code-block-text`. But a mermaid fence is a whole-block replacement — there is no code block behind it — so Elegant and Bear (light pages with dark code blocks) rendered pale lines on the dark block, washed out against the page.
+
+Preview and HTML/PDF exports now derive the `--pele-*` tokens from the page colors (`--bg-color`/`--text-color`, mixed at 18%/28%/45% — the same ratios as the engine) and no longer paint a background behind the diagram, matching ColaMD-extend 2.7.13-rc.1. Light themes get dark lines on paper; dark themes get light lines on the dark page.
+
+### 🐛 Theme Variables Actually Apply Now
+
+The built-in and custom theme files declare their variables on `:root`, but the engine writes the same variables on `body.theme-x` — higher specificity — so the theme files' values were silently ignored in the preview (their element rules did apply, giving a mix of old variables and new rules). Theme CSS is now injected as `:root, body.theme-x` so the file wins, and exports apply the same scoping.
+
+### 🎨 All 12 Built-in Themes Synced with ColaMD-extend
+
+The 12 theme files are byte-identical with ColaMD-extend's (the 2.7.12+ theme contract): refined border colors everywhere, Dark/Midnight/Writer gain strong and inline-code accent colors, Notion swaps link underlines for strong/URL colors, blockquote overrides trimmed (Dracula/Gruvbox/Nord/Midnight), Elegant drops the dead `--table-border` variable and horizontal blockquote padding (as do Sepia).
+
+### 🎨 Word Export: Readable Colors on White Paper
+
+Two rules mirrored from ColaMD-extend's `docx-style.ts`: dark themes fall back entirely to the light palette (light text on white paper is invisible), and light themes with a dark code block (Elegant/Bear) draw diagrams on white with the body text color instead of pale code-block text.
+
 ## v0.3.2 (2026-11-07)
 
 ### 🐛 PDF/HTML Export Fixed: `md is not defined`

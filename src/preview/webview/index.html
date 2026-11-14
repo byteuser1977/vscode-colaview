@@ -50,12 +50,24 @@
         #editor .cm-scroller {
             overflow: auto;
         }
-        /* mermaid 图要画在代码块的深色底上（和 ColaMD 一致）：图表配色是按
-           --code-block-bg 推出来的，浮在浅色页面上时整块底色和那边对不上。 */
+        /* mermaid 图画在页面底色上（与 ColaMD-extend 一致）：围栏是整块替换，
+           没有代码块底，图表配色按页面底色/正文色推导。引擎的
+           `.cm-content .cm-md-mermaid` 以代码块配色推导 --pele-*，这里用
+           #editor 提高特异性覆盖。background 铺页面色是为了盖住 2.7.x 引擎
+           可能残留的代码块行底色。 */
         #editor .cm-md-mermaid {
-            background: var(--code-block-bg);
-            border-radius: 6px;
-            padding: 0.8em 1em;
+            background: var(--bg-color);
+            border-radius: 0;
+            padding: 0.8em 0;
+            --pele-bg: var(--bg-color);
+            --pele-fg: var(--text-color);
+            --pele-muted: color-mix(in srgb, var(--text-color) 70%, var(--bg-color));
+            --pele-line: var(--text-color);
+            --pele-surface: color-mix(in srgb, var(--text-color) 18%, var(--bg-color));
+            --pele-surface-alt: color-mix(in srgb, var(--text-color) 28%, var(--bg-color));
+            --pele-border: color-mix(in srgb, var(--text-color) 45%, var(--bg-color));
+            --pele-accent: var(--link-color);
+            --pele-radius: 6px;
         }
 
         /* ── Context Menu ── */

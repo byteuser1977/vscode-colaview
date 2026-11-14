@@ -3,7 +3,7 @@
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85%2B-007ACC?logo=visual-studio-code)](https://code.visualstudio.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.3.3-orange)](package.json)
 
 VS Code 富文本 Markdown 预览与 PDF/HTML/Word 导出扩展 — 基于 [ColaMD](https://github.com/byteuser1977/ColaMD-extend) 渲染引擎（CodeMirror 6 内核）。
 
@@ -206,11 +206,19 @@ npm run package
 
 ### 构建系统
 
-项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.11 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.4MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML、KaTeX 样式表、Mermaid 脚本）到 `out/` 目录，确保打包安装后功能正常。
+项目使用 **esbuild** 打包 — 扩展端（`out/extension.js`）是一个仅依赖 VS Code API 的小型 CJS bundle。WebView 端（`out/preview/webview/app.js`）是包含完整 ColaMD 2.7.13-rc.1 渲染引擎（CodeMirror 6 + Mermaid + KaTeX）的 IIFE bundle — 未压缩约 3.5MB，gzip 后约 400KB。构建时自动复制资源文件（CSS、WebView HTML、KaTeX 样式表、Mermaid 脚本）到 `out/` 目录，确保打包安装后功能正常。
 
 ## 更新日志
 
-### v0.3.2（当前版本）
+### v0.3.3（当前版本）
+
+- **🔧 引擎升级 — ColaMD 2.7.13-rc.1，告别补丁** — CM6 整行 replace 装饰的 `block: true` 修复（此前靠 `patch-package` 固化）已随引擎原生发布，并扩展到表格与 HTML 块；`patches/` 目录已移除。引擎自身的 mermaid 配色也已页面化。
+- **🎨 Mermaid 图画在页面上** — 预览与 HTML/PDF 导出的 `--pele-*` 令牌改由页面颜色（`--bg-color`/`--text-color`，18%/28%/45% 混合）推导，不再按代码块配色、不再给图铺代码块底色，与 ColaMD-extend 2.7.13-rc.1 一致。Elegant/Bear 此前把浅色线条画在深色代码块上，差异最明显。
+- **🐛 主题变量真正生效** — 引擎把同一批变量写在 `body.theme-x`（特异性 0,1,1）上，永远压过注入的 `:root`（0,1,0），主题文件里的变量值在预览中一直被忽略。主题 CSS 现以 `:root, body.theme-x` 注入；导出端同样处理。
+- **🎨 12 套内置主题与 ColaMD-extend 同步** — 全部主题边框色微调；Dark/Midnight/Writer 新增加粗/行内代码强调色；Notion 以 strong/URL 颜色替代链接下划线；引用块覆盖规则精简；Elegant 移除失效的 `--table-border` 变量。
+- **🎨 Word 导出：白纸上的可读配色** — 深色主题整体回落浅色板；浅色主题配深色代码块（Elegant/Bear）时图表以白底 + 正文色绘制。
+
+### v0.3.2
 
 - **🐛 修复 PDF/HTML 导出失败（`md is not defined`）** — 导出时报 "PDF export failed: md is not defined"：导出样式模板字符串里的一段 CSS 注释含未转义的反引号，提前闭合了模板字面量，剩余注释被当成 JavaScript 解析。现已转义反引号，注释保持为注释。
 - **🐛 修复 PDF/HTML 导出中 Mermaid 图未居中** — 引擎把 mermaid 块序列化成不带类名的 `<p><svg class="pele pele-…">…</svg></p>`，此前的 `div:has(> svg.pele)` 导出规则匹配不到，居中在纸面上失效。现把居中规则落到 `svg.pele` 自身（`display: block; margin: 0 auto`），与父级是 `<p>` 还是 `<div>` 无关。
